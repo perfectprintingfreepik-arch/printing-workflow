@@ -104,23 +104,32 @@
         let jobsData = [];
         let currentPage = 1;
         const itemsPerPage = 10;
-        let localExpandedState = {}; // တစ်ဦးချင်းစီရဲ့ အကွက်အပိတ်အဖွင့်ကို သီးသန့်ခွဲမှတ်ရန်
+        let localExpandedState = {}; 
 
         // Realtime Database ကနေ တခြားဖုန်းကပြင်လိုက်တာကို Live စောင့်ဖတ်မယ့်စနစ်
         function initFirebaseSync() {
             const eventSource = new EventSource(`${FIREBASE_URL}/jobs.json`);
             eventSource.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-                if (data && data.data) {
+                const resData = JSON.parse(event.data);
+                
+                // Firebase Stream Event ကနေ လက်ခံရရှိတဲ့ data တည်ဆောက်ပုံကို စစ်ဆေးခြင်း
+                let rawJobs = null;
+                if (resData && resData.data !== undefined) {
+                    rawJobs = resData.data;
+                } else if (resData && resData.path === "/") {
+                    rawJobs = resData.data;
+                }
+
+                if (rawJobs) {
                     let firebaseJobs = [];
-                    if (Array.isArray(data.data)) {
-                        firebaseJobs = data.data.filter(Boolean);
-                    } else {
-                        firebaseJobs = Object.keys(data.data).map(key => data.data[key]);
+                    if (Array.isArray(rawJobs)) {
+                        firebaseJobs = rawJobs.filter(Boolean);
+                    } else if (typeof rawJobs === 'object') {
+                        firebaseJobs = Object.keys(rawJobs).map(key => rawJobs[key]);
                     }
-                    // ID ကြီးရာမှ ငယ်ရာသို့ စီစဉ်ပေးခြင်း (အသစ်တွေ အပေါ်ရောက်ရန်)
                     jobsData = firebaseJobs.sort((a, b) => b.id - a.id);
                 } else {
+                    // အကယ်၍ ဒေတာ လုံးဝမရှိသေးပါက Array အလွတ်တစ်ခုအဖြစ် သတ်မှတ်မည်
                     jobsData = [];
                 }
                 renderApp();
@@ -132,6 +141,8 @@
             fetch(`${FIREBASE_URL}/jobs.json`, {
                 method: 'PUT',
                 body: JSON.stringify(jobsData)
+            }).then(() => {
+                renderApp();
             });
         }
 
@@ -227,4 +238,172 @@
                             ${renderWorkflowRow(job, 'lamination', 'Lamination')}
                             ${renderWorkflowRow(job, 'dieFrame', 'Die Frame')}
                             ${renderWorkflowRow(job, 'dieCut', 'Die Cut')}
-                            ${renderWorkflowRow(job, 'cutting', 'Cutting
+                            ${renderWorkflowRow(job, 'cutting', 'Cutting')}
+                            ${renderWorkflowRow(job, 'binding', 'Binding')}
+                            ${renderWorkflowRow(job, 'zinc', 'Zinc / Remark')}
+                            ${renderWorkflowRow(job, 'goldFoil', 'Gold Foil Press')}
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHTML);
+            });
+
+            renderPaginationControls(totalPages);
+        }
+
+        function renderWorkflowRow(job, key, label) {
+            const item = job.workflow[key];
+            const activeClass = item.bulb !== 'black' ? 'active' : '';
+            const borderStyle = item.color !== 'white' ? `background-color: ${item.color}; border-color: ${item.color};` : 'background-color: white;';
+            
+            return `
+                <div class="workflow-row">
+                    <div class="row-controls">
+                        <span class="bulb-btn ${activeClass}" onclick="toggleBulbColor(${job.id}, '${key}', this)">💡</span>
+                        <div class="row-color-dot" style="${borderStyle}" onclick="changeRowColor(${job.id}, '${key}', this)"></div>
+                    </div>
+                    <span class="step-name">${label}</span>
+                    <input type="text" class="step-input" style="color: ${item.bulb};" value="${item.text}" placeholder="—" onchange="updateWorkflowText(${job.id}, '${key}', this.value)">
+                </div>
+            `;
+        }
+
+        function renderPaginationControls(totalPages) {
+            const container = document.getElementById('paginationContainer');
+            container.innerHTML = "";
+            if (totalPages <= 1) return;
+
+            const backDisabled = currentPage === 1 ? 'disabled' : '';
+            container.insertAdjacentHTML('beforeend', `<button class="page-btn" ${backDisabled} onclick="changePage(${currentPage - 1})">Back</button>`);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const activeClass = currentPage === i ? 'active' : '';
+                container.insertAdjacentHTML('beforeend', `<button class="page-btn ${activeClass}" onclick="changePage(${i})">${i}</button>`);
+            }
+
+            const nextDisabled = currentPage === totalPages ? 'disabled' : '';
+            container.insertAdjacentHTML('beforeend', `<button class="page-btn" ${nextDisabled} onclick="changePage(${currentPage + 1})">Next</button>`);
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            renderApp();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleDetails(id, btn) {
+            localExpandedState[id] = !localExpandedState[id];
+            const card = document.getElementById(`card-${id}`);
+            const detailsDiv = card.querySelector('.workflow-details');
+            const arrowSpan = btn.querySelector('.arrow');
+            const textSpan = btn.querySelector('.text');
+
+            if (localExpandedState[id]) {
+                detailsDiv.classList.add('active');
+                arrowSpan.innerText = '▲';
+                textSpan.innerText = 'Less';
+            } else {
+                detailsDiv.classList.remove('active');
+                arrowSpan.innerText = '▼';
+                textSpan.innerText = 'More details';
+            }
+        }
+
+        function deleteJob(id) {
+            if (confirm("ဒီအော်ဒါစာရင်းကို ဖြတ်ပစ်ရန် သေချာပါသလား?")) {
+                jobsData = jobsData.filter(job => job.id !== id);
+                saveToFirebase();
+            }
+        }
+
+        function toggleMainStatus(id) {
+            const job = jobsData.find(j => j.id === id);
+            if (job) {
+                job.isDone = !job.isDone;
+                saveToFirebase();
+            }
+        }
+
+        function updateTitle(id, value) {
+            const job = jobsData.find(j => j.id === id);
+            if (job && job.title !== value) { job.title = value; saveToFirebase(); }
+        }
+
+        function updateDate(id, value) {
+            const job = jobsData.find(j => j.id === id);
+            if (job && job.date !== value) { job.date = value; saveToFirebase(); }
+        }
+
+        function updateWorkflowText(id, key, value) {
+            const job = jobsData.find(j => j.id === id);
+            if (job && job.workflow[key].text !== value) { job.workflow[key].text = value; saveToFirebase(); }
+        }
+
+        function changeRowColor(id, key, dot) {
+            const pink = 'rgb(255, 64, 129)';
+            const job = jobsData.find(j => j.id === id);
+            if (!job) return;
+
+            let currentColor = window.getComputedStyle(dot).backgroundColor;
+            if (currentColor === 'rgb(255, 255, 255)' || dot.style.backgroundColor === 'white') {
+                job.workflow[key].color = '#ff4081';
+            } else if (currentColor === pink) {
+                job.workflow[key].color = '#ffd700';
+            } else {
+                job.workflow[key].color = 'white';
+            }
+            saveToFirebase();
+        }
+
+        function toggleBulbColor(id, key, bulb) {
+            const job = jobsData.find(j => j.id === id);
+            if (!job) return;
+
+            let currentBulb = job.workflow[key].bulb;
+            if (currentBulb === 'black' || currentBulb === '') {
+                job.workflow[key].bulb = 'red';
+            } else if (currentBulb === 'red') {
+                job.workflow[key].bulb = 'green';
+            } else {
+                job.workflow[key].bulb = 'black';
+            }
+            saveToFirebase();
+        }
+
+        function triggerFileInput(thumb) {
+            thumb.closest('.image-upload-container').querySelector('.file-input').click();
+        }
+
+        function previewImage(input, jobId) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 120; 
+                        const scaleSize = MAX_WIDTH / img.width;
+                        canvas.width = MAX_WIDTH;
+                        canvas.height = img.height * scaleSize;
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        
+                        const job = jobsData.find(j => j.id === jobId);
+                        if (job) {
+                            job.image = canvas.toDataURL('image/jpeg', 0.7); 
+                            saveToFirebase();
+                        }
+                    };
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // စတင်ချိန်တွင် ဒေတာ Live ချိတ်ဆက်မှုကို မောင်းနှင်ခြင်း
+        initFirebaseSync();
+    </script>
+</body>
+</html>
