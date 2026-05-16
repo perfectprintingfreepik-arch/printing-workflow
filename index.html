@@ -20,7 +20,7 @@
         .search-bar { width: 100%; max-width: 400px; padding: 10px 15px; border: 1px solid #ccc; border-radius: 20px; font-size: 14px; outline: none; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
 
         /* Job Card Layout */
-        .job-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: background-color 0.2s ease; position: relative; }
+        .job-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative; }
         .job-card.finished-card { background-color: #e3f2fd !important; }
 
         .card-top { display: flex; align-items: center; justify-content: space-between; }
@@ -54,8 +54,7 @@
         .more-details-btn { color: #888; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 4px; user-select: none; margin: 0 auto; }
         
         /* Delete Button */
-        .delete-btn { background: none; border: none; color: #e53935; cursor: pointer; font-size: 16px; padding: 5px; position: absolute; right: 0; top: 0; display: flex; align-items: center; justify-content: center; opacity: 0.7; transition: opacity 0.2s ease; }
-        .delete-btn:hover { opacity: 1; }
+        .delete-btn { background: none; border: none; color: #e53935; cursor: pointer; font-size: 16px; padding: 5px; position: absolute; right: 0; top: 0; display: flex; align-items: center; justify-content: center; opacity: 0.7; }
         
         /* Workflow Table */
         .workflow-details { display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
@@ -105,51 +104,109 @@
         const itemsPerPage = 10;
         let localExpandedState = {}; 
 
-        // Firebase Sync
+        // Firebase ကနေ Live အမှန်ကန်ဆုံး နားထောင်မယ့် စနစ်အသစ်
         function initFirebaseSync() {
+            // တစ်ကြိမ်တည်း ဒေတာအကုန်ကို fetch အရင်လုပ်ပြီး အဆင်သင့်ပြထားမယ်
+            fetch(`${FIREBASE_URL}/jobs.json`)
+            .then(res => res.json())
+            .then(data => {
+                handleFirebaseData(data);
+                renderApp();
+            });
+
+            // နောက်ထပ် ဖုန်းတွေကနေ ပြောင်းလဲသမျှကို Live ဖတ်မယ့် အပိုင်း
             const eventSource = new EventSource(`${FIREBASE_URL}/jobs.json`);
             eventSource.onmessage = function(event) {
-                const resData = JSON.parse(event.data);
-                let rawJobs = null;
+                const stream = JSON.parse(event.data);
+                if (!stream) return;
 
-                if (resData && resData.path === "/") {
-                    rawJobs = resData.data;
-                } else if (resData && resData.data !== undefined) {
-                    rawJobs = resData.data;
-                } else {
-                    rawJobs = resData;
-                }
-
-                if (rawJobs) {
-                    let firebaseJobs = [];
-                    if (Array.isArray(rawJobs)) {
-                        firebaseJobs = rawJobs.filter(Boolean);
-                    } else if (typeof rawJobs === 'object') {
-                        firebaseJobs = Object.keys(rawJobs).map(key => rawJobs[key]).filter(Boolean);
+                // ကနဦးအစ သို့မဟုတ် ဒေတာတစ်ခုလုံး ပြောင်းလဲသွားချိန်
+                if (stream.path === "/") {
+                    handleFirebaseData(stream.data);
+                    renderApp();
+                } 
+                // အကွက်တစ်ခုချင်းစီ သို့မဟုတ် workflow ထဲက စာသားပဲ လာပြင်သွားချိန် (ဒီနေရာမှာ UI တစ်ခုလုံး ပြန်မဆောက်ဘဲ ဒေတာပဲ Update လုပ်မယ်)
+                else if (stream.path && stream.path !== "/") {
+                    const pathParts = stream.path.split('/'); // ဥပမာ: ["", "0", "workflow", "paperType", "text"]
+                    if (pathParts.length >= 2) {
+                        const index = parseInt(pathParts[1]);
+                        if (!isNaN(index)) {
+                            // Firebase ပေါ်က index တိုက်ရိုက်အတိုင်း ဒေတာထဲ လှမ်းထည့်ခြင်း
+                            updateLocalDataByPath(index, pathParts.slice(2), stream.data);
+                            // Live ပေါ်လာအောင် UI ထဲက သက်ဆိုင်ရာ Input ကွက်ကိုပဲ ရှာပြီး တိုက်ရိုက် စာသားပြောင်းပေးမယ် (Focus မပျောက်စေရန်)
+                            updateDOMDirectly(index, pathParts.slice(2), stream.data);
+                        }
                     }
-                    jobsData = firebaseJobs.sort((a, b) => b.id - a.id);
-                } else {
-                    jobsData = [];
                 }
-                renderApp();
             };
         }
 
-        function saveToFirebase() {
-            fetch(`${FIREBASE_URL}/jobs.json`, {
-                method: 'PUT',
-                body: JSON.stringify(jobsData)
+        function handleFirebaseData(rawJobs) {
+            if (!rawJobs) { jobsData = []; return; }
+            let arr = [];
+            if (Array.isArray(rawJobs)) {
+                arr = rawJobs;
+            } else if (typeof rawJobs === 'object') {
+                arr = Object.keys(rawJobs).map(k => rawJobs[k]);
+            }
+            // Array ထဲမှာ null တွေပါလာရင် ရှင်းထုတ်ပြီး ID အစဉ်အတိုင်း သိမ်းဆည်းမယ်
+            jobsData = arr.map((job, index) => {
+                if (job) {
+                    if (!job.id) job.id = index;
+                    return job;
+                }
+                return null;
             });
         }
 
+        function updateLocalDataByPath(index, paths, value) {
+            if (!jobsData[index]) jobsData[index] = { id: index, workflow: {} };
+            let current = jobsData[index];
+            for (let i = 0; i < paths.length - 1; i++) {
+                if (!current[paths[i]]) current[paths[i]] = {};
+                current = current[paths[i]];
+            }
+            if (paths.length > 0) {
+                current[paths[paths.length - 1]] = value;
+            }
+        }
+
+        // အခြားဖုန်းက ရိုက်လိုက်တဲ့ စာသားကို Focus မပျောက်ဘဲ မျက်စိရှေ့မှာ Live ပြောင်းပေးမည့်စနစ်
+        function updateDOMDirectly(index, paths, value) {
+            const job = jobsData[index];
+            if (!job) return;
+            if (paths.length === 3 && paths[0] === 'workflow' && paths[2] === 'text') {
+                const key = paths[1];
+                const inputEl = document.querySelector(`#card-${job.id} .step-input[data-key="${key}"]`);
+                if (inputEl && document.activeElement !== inputEl) {
+                    inputEl.value = value || "";
+                }
+            }
+            // အလုပ်ပြီး/မပြီး Status ကို Live ပြောင်းခြင်း
+            if (paths.length === 1 && paths[0] === 'isDone') {
+                const cardEl = document.getElementById(`card-${job.id}`);
+                const circleEl = cardEl ? cardEl.querySelector('.status-circle') : null;
+                if (cardEl && circleEl) {
+                    if (value) {
+                        cardEl.classList.add('finished-card');
+                        circleEl.classList.add('done');
+                    } else {
+                        cardEl.classList.remove('finished-card');
+                        circleEl.classList.remove('done');
+                    }
+                }
+            }
+        }
+
+        // ဒေတာအသစ်ထည့်ရင် Database ရဲ့ အခန်းအသစ် (Next Index) မှာ ကွက်တိသွားသိမ်းမည့်စနစ်
         function addNewJob() {
             const d = new Date();
             const todayStr = `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
-            const newId = jobsData.length > 0 ? Math.max(...jobsData.map(j => j.id)) + 1 : 1;
+            const nextIndex = jobsData.length;
             
             const newJob = {
-                id: newId,
-                title: "New Job Order #" + newId,
+                id: nextIndex,
+                title: "New Job Order #" + (nextIndex + 1),
                 date: todayStr,
                 image: "",
                 isDone: false,
@@ -167,10 +224,14 @@
                 }
             };
             
-            jobsData.unshift(newJob);
-            currentPage = 1;
-            saveToFirebase();
-            renderApp(); // Add Job နှိပ်လိုက်တာနဲ့ ချက်ချင်း မျက်စိရှေ့မှာ Card ပေါ်လာစေရန်
+            // Firebase ပေါ်သို့ index အလိုက် တိုက်ရိုက်လှမ်းဆောက်ပြီး သိမ်းဆည်းခြင်း
+            fetch(`${FIREBASE_URL}/jobs/${nextIndex}.json`, {
+                method: 'PUT',
+                body: JSON.stringify(newJob)
+            }).then(() => {
+                jobsData[nextIndex] = newJob;
+                renderApp();
+            });
         }
 
         function triggerSearch() {
@@ -180,7 +241,16 @@
 
         function renderApp() {
             const searchInput = document.getElementById('searchBar').value.toLowerCase();
-            const filteredJobs = jobsData.filter(job => job && job.title && (job.title.toLowerCase().includes(searchInput) || job.date.toLowerCase().includes(searchInput)));
+            
+            // UI ထဲမှာပြရင် အသစ်ဆုံးကို အပေါ်ဆုံးကပြဖို့ ပြောင်းပြန်လှန်စစ်ထုတ်ခြင်း
+            const validJobs = jobsData.filter(Boolean);
+            const filteredJobs = validJobs.filter(job => 
+                (job.title && job.title.toLowerCase().includes(searchInput)) || 
+                (job.date && job.date.toLowerCase().includes(searchInput))
+            );
+
+            // စီစဉ်ပုံ - ID အကြီးဆုံး (နောက်ဆုံးထည့်တဲ့အော်ဒါ) ကို ထိပ်ဆုံးကပြရန်
+            filteredJobs.sort((a, b) => b.id - a.id);
 
             document.getElementById('jobCount').innerText = `${filteredJobs.length} jobs`;
 
@@ -251,10 +321,9 @@
         }
 
         function renderWorkflowRow(job, key, label) {
-            if (!job.workflow || !job.workflow[key]) {
-                job.workflow = job.workflow || {};
-                job.workflow[key] = { text: "", color: "white", bulb: "black" };
-            }
+            if (!job.workflow) job.workflow = {};
+            if (!job.workflow[key]) job.workflow[key] = { text: "", color: "white", bulb: "black" };
+            
             const item = job.workflow[key];
             const activeClass = item.bulb !== 'black' ? 'active' : '';
             const borderStyle = item.color !== 'white' ? `background-color: ${item.color}; border-color: ${item.color};` : 'background-color: white;';
@@ -266,7 +335,7 @@
                         <div class="row-color-dot" style="${borderStyle}" onclick="changeRowColor(${job.id}, '${key}', this)"></div>
                     </div>
                     <span class="step-name">${label}</span>
-                    <input type="text" class="step-input" style="color: ${item.bulb};" value="${item.text || ''}" placeholder="—" onchange="updateWorkflowText(${job.id}, '${key}', this.value)">
+                    <input type="text" class="step-input" data-key="${key}" style="color: ${item.bulb || 'black'};" value="${item.text || ''}" placeholder="—" onchange="updateWorkflowText(${job.id}, '${key}', this.value)">
                 </div>
             `;
         }
@@ -312,42 +381,54 @@
             }
         }
 
-        // ဒေတာပြုပြင်မှုများကို ဒေတာဘေ့စ်ပေါ် တိုက်ရိုက်သိမ်းဆည်းခြင်းစနစ် (အော်တို UI ပြန်ဆောက်မည်)
+        // စာရိုက်ပြီး ထွက်လိုက်တာနဲ့ သက်ဆိုင်ရာ အကွက်လေးကိုပဲ Firebase ပေါ် တိုက်ရိုက် PATCH စနစ်နဲ့ သွားသိမ်းမယ် (UI ပြန်မဆောက်လို့ Focus မပျောက်ပါ)
+        function updateWorkflowText(id, key, value) {
+            const job = jobsData.find(j => j && j.id === id);
+            if (job) {
+                job.workflow[key].text = value;
+                fetch(`${FIREBASE_URL}/jobs/${id}/workflow/${key}.json`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ text: value })
+                });
+            }
+        }
+
         function updateTitle(id, value) {
-            const job = jobsData.find(j => j.id === id);
-            if (job) { job.title = value; saveToFirebase(); renderApp(); }
+            const job = jobsData.find(j => j && j.id === id);
+            if (job) {
+                job.title = value;
+                fetch(`${FIREBASE_URL}/jobs/${id}.json`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ title: value })
+                });
+            }
         }
 
         function updateDate(id, value) {
-            const job = jobsData.find(j => j.id === id);
-            if (job) { job.date = value; saveToFirebase(); renderApp(); }
-        }
-
-        function updateWorkflowText(id, key, value) {
-            const job = jobsData.find(j => j.id === id);
-            if (job) { job.workflow[key].text = value; saveToFirebase(); renderApp(); }
-        }
-
-        function deleteJob(id) {
-            if (confirm("ဒီအော်ဒါစာရင်းကို ဖြတ်ပစ်ရန် သေချာပါသလား?")) {
-                jobsData = jobsData.filter(job => job.id !== id);
-                saveToFirebase();
-                renderApp();
+            const job = jobsData.find(j => j && j.id === id);
+            if (job) {
+                job.date = value;
+                fetch(`${FIREBASE_URL}/jobs/${id}.json`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ date: value })
+                });
             }
         }
 
         function toggleMainStatus(id) {
-            const job = jobsData.find(j => j.id === id);
+            const job = jobsData.find(j => j && j.id === id);
             if (job) {
                 job.isDone = !job.isDone;
-                saveToFirebase();
-                renderApp();
+                fetch(`${FIREBASE_URL}/jobs/${id}.json`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ isDone: job.isDone })
+                }).then(() => renderApp());
             }
         }
 
         function changeRowColor(id, key, dot) {
             const pink = 'rgb(255, 64, 129)';
-            const job = jobsData.find(j => j.id === id);
+            const job = jobsData.find(j => j && j.id === id);
             if (!job) return;
 
             let currentColor = window.getComputedStyle(dot).backgroundColor;
@@ -358,12 +439,15 @@
             } else {
                 job.workflow[key].color = 'white';
             }
-            saveToFirebase();
-            renderApp();
+            
+            fetch(`${FIREBASE_URL}/jobs/${id}/workflow/${key}.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ color: job.workflow[key].color })
+            }).then(() => renderApp());
         }
 
         function toggleBulbColor(id, key, bulb) {
-            const job = jobsData.find(j => j.id === id);
+            const job = jobsData.find(j => j && j.id === id);
             if (!job) return;
 
             let currentBulb = job.workflow[key].bulb;
@@ -374,8 +458,22 @@
             } else {
                 job.workflow[key].bulb = 'black';
             }
-            saveToFirebase();
-            renderApp();
+
+            fetch(`${FIREBASE_URL}/jobs/${id}/workflow/${key}.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ bulb: job.workflow[key].bulb })
+            }).then(() => renderApp());
+        }
+
+        function deleteJob(id) {
+            if (confirm("ဒီအော်ဒါစာရင်းကို ဖြတ်ပစ်ရန် သေချက်ပါသလား?")) {
+                fetch(`${FIREBASE_URL}/jobs/${id}.json`, {
+                    method: 'DELETE'
+                }).then(() => {
+                    jobsData[id] = null;
+                    renderApp();
+                });
+            }
         }
 
         function triggerFileInput(thumb) {
@@ -398,11 +496,14 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                         
-                        const job = jobsData.find(j => j.id === jobId);
+                        const base64Image = canvas.toDataURL('image/jpeg', 0.6);
+                        const job = jobsData.find(j => j && j.id === jobId);
                         if (job) {
-                            job.image = canvas.toDataURL('image/jpeg', 0.7); 
-                            saveToFirebase();
-                            renderApp();
+                            job.image = base64Image;
+                            fetch(`${FIREBASE_URL}/jobs/${jobId}.json`, {
+                                method: 'PATCH',
+                                body: JSON.stringify({ image: base64Image })
+                            }).then(() => renderApp());
                         }
                     };
                     img.src = e.target.result;
@@ -411,6 +512,7 @@
             }
         }
 
+        // App စဖွင့်တာနဲ့ Database Live ချိတ်ဆက်မှုကို မောင်းနှင်ခြင်း
         initFirebaseSync();
     </script>
 </body>
