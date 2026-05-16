@@ -68,7 +68,7 @@
         .row-color-dot { width: 18px; height: 18px; border-radius: 50%; border: 1px solid #bbb; cursor: pointer; background-color: white; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
         
         .step-name { font-size: 14px; color: #555; width: 35%; font-weight: 500; }
-        .step-input { width: 50%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; transition: color 0.2s ease; }
+        .step-input { width: 50%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
 
         /* Pagination Controls */
         .pagination { display: flex; justify-content: center; align-items: center; margin: 20px 0; gap: 8px; }
@@ -98,7 +98,6 @@
         tg.ready();
         tg.expand();
 
-        // Firebase URL
         const FIREBASE_URL = "https://printing-workflow-43d91-default-rtdb.asia-southeast1.firebasedatabase.app"; 
 
         let jobsData = [];
@@ -106,7 +105,7 @@
         const itemsPerPage = 10;
         let localExpandedState = {}; 
 
-        // Firebase ကနေ ဒေတာအစအဆုံး လမ်းကြောင်းမှန်မှန်ကန်ကန် စောင့်ဖတ်မယ့်စနစ်
+        // Firebase Sync
         function initFirebaseSync() {
             const eventSource = new EventSource(`${FIREBASE_URL}/jobs.json`);
             eventSource.onmessage = function(event) {
@@ -123,14 +122,11 @@
 
                 if (rawJobs) {
                     let firebaseJobs = [];
-                    // Array သို့မဟုတ် Object ပုံစံမျိုးစုံ လာသမျှကို သေချာစစ်ထုတ်ပြီး ဖတ်ယူခြင်း
                     if (Array.isArray(rawJobs)) {
                         firebaseJobs = rawJobs.filter(Boolean);
                     } else if (typeof rawJobs === 'object') {
                         firebaseJobs = Object.keys(rawJobs).map(key => rawJobs[key]).filter(Boolean);
                     }
-                    
-                    // ID အကြီးဆုံး (နောက်ဆုံးထည့်တဲ့အော်ဒါ) ကို အပေါ်ဆုံးကပြရန်
                     jobsData = firebaseJobs.sort((a, b) => b.id - a.id);
                 } else {
                     jobsData = [];
@@ -139,7 +135,6 @@
             };
         }
 
-        // Firebase ပေါ်သို့ ဒေတာ လှမ်းသိမ်းသောစနစ်
         function saveToFirebase() {
             fetch(`${FIREBASE_URL}/jobs.json`, {
                 method: 'PUT',
@@ -175,6 +170,7 @@
             jobsData.unshift(newJob);
             currentPage = 1;
             saveToFirebase();
+            renderApp(); // Add Job နှိပ်လိုက်တာနဲ့ ချက်ချင်း မျက်စိရှေ့မှာ Card ပေါ်လာစေရန်
         }
 
         function triggerSearch() {
@@ -184,7 +180,7 @@
 
         function renderApp() {
             const searchInput = document.getElementById('searchBar').value.toLowerCase();
-            const filteredJobs = jobsData.filter(job => job && (job.title.toLowerCase().includes(searchInput) || job.date.toLowerCase().includes(searchInput)));
+            const filteredJobs = jobsData.filter(job => job && job.title && (job.title.toLowerCase().includes(searchInput) || job.date.toLowerCase().includes(searchInput)));
 
             document.getElementById('jobCount').innerText = `${filteredJobs.length} jobs`;
 
@@ -199,6 +195,8 @@
 
             if (jobsToDisplay.length === 0) {
                 container.innerHTML = `<div style="text-align:center; padding:30px; color:#999;">ရှာဖွေမှုမတွေ့ရှိပါ...</div>`;
+                renderPaginationControls(totalPages);
+                return;
             }
 
             jobsToDisplay.forEach(job => {
@@ -216,10 +214,10 @@
                                 </div>
                                 <div class="title-container">
                                     <div class="title-row">
-                                        <input type="text" class="job-title-input ${job.isDone ? 'finished-title' : ''}" value="${job.title}" placeholder="အော်ဒါအမည်" onchange="updateTitle(${job.id}, this.value)">
+                                        <input type="text" class="job-title-input ${job.isDone ? 'finished-title' : ''}" value="${job.title || ''}" placeholder="အော်ဒါအမည်" onchange="updateTitle(${job.id}, this.value)">
                                         ${job.isDone ? '<span class="finished-badge">FINISHED</span>' : ''}
                                     </div>
-                                    <input type="text" class="job-date-input-manual" value="${job.date}" placeholder="DD-MM-YYYY" onchange="updateDate(${job.id}, this.value)">
+                                    <input type="text" class="job-date-input-manual" value="${job.date || ''}" placeholder="DD-MM-YYYY" onchange="updateDate(${job.id}, this.value)">
                                 </div>
                             </div>
                             <div class="status-circle ${job.isDone ? 'done' : ''}" onclick="toggleMainStatus(${job.id})"></div>
@@ -253,6 +251,10 @@
         }
 
         function renderWorkflowRow(job, key, label) {
+            if (!job.workflow || !job.workflow[key]) {
+                job.workflow = job.workflow || {};
+                job.workflow[key] = { text: "", color: "white", bulb: "black" };
+            }
             const item = job.workflow[key];
             const activeClass = item.bulb !== 'black' ? 'active' : '';
             const borderStyle = item.color !== 'white' ? `background-color: ${item.color}; border-color: ${item.color};` : 'background-color: white;';
@@ -310,10 +312,27 @@
             }
         }
 
+        // ဒေတာပြုပြင်မှုများကို ဒေတာဘေ့စ်ပေါ် တိုက်ရိုက်သိမ်းဆည်းခြင်းစနစ် (အော်တို UI ပြန်ဆောက်မည်)
+        function updateTitle(id, value) {
+            const job = jobsData.find(j => j.id === id);
+            if (job) { job.title = value; saveToFirebase(); renderApp(); }
+        }
+
+        function updateDate(id, value) {
+            const job = jobsData.find(j => j.id === id);
+            if (job) { job.date = value; saveToFirebase(); renderApp(); }
+        }
+
+        function updateWorkflowText(id, key, value) {
+            const job = jobsData.find(j => j.id === id);
+            if (job) { job.workflow[key].text = value; saveToFirebase(); renderApp(); }
+        }
+
         function deleteJob(id) {
             if (confirm("ဒီအော်ဒါစာရင်းကို ဖြတ်ပစ်ရန် သေချာပါသလား?")) {
                 jobsData = jobsData.filter(job => job.id !== id);
                 saveToFirebase();
+                renderApp();
             }
         }
 
@@ -322,30 +341,7 @@
             if (job) {
                 job.isDone = !job.isDone;
                 saveToFirebase();
-            }
-        }
-
-        function updateTitle(id, value) {
-            const job = jobsData.find(j => j.id === id);
-            if (job && job.title !== value) { 
-                job.title = value; 
-                saveToFirebase(); 
-            }
-        }
-
-        function updateDate(id, value) {
-            const job = jobsData.find(j => j.id === id);
-            if (job && job.date !== value) { 
-                job.date = value; 
-                saveToFirebase(); 
-            }
-        }
-
-        function updateWorkflowText(id, key, value) {
-            const job = jobsData.find(j => j.id === id);
-            if (job && job.workflow[key].text !== value) { 
-                job.workflow[key].text = value; 
-                saveToFirebase(); 
+                renderApp();
             }
         }
 
@@ -363,6 +359,7 @@
                 job.workflow[key].color = 'white';
             }
             saveToFirebase();
+            renderApp();
         }
 
         function toggleBulbColor(id, key, bulb) {
@@ -378,6 +375,7 @@
                 job.workflow[key].bulb = 'black';
             }
             saveToFirebase();
+            renderApp();
         }
 
         function triggerFileInput(thumb) {
@@ -404,6 +402,7 @@
                         if (job) {
                             job.image = canvas.toDataURL('image/jpeg', 0.7); 
                             saveToFirebase();
+                            renderApp();
                         }
                     };
                     img.src = e.target.result;
@@ -412,7 +411,6 @@
             }
         }
 
-        // စတင်ချိန်တွင် ဒေတာ Live ချိတ်ဆက်မှုကို မောင်းနှင်ခြင်း
         initFirebaseSync();
     </script>
 </body>
