@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Printing Workflow App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background-color: #f0f2f5; padding: 15px; color: #333; }
+        
+        /* Fixed Header Section */
+        .header-container { background: #f0f2f5; position: sticky; top: 0; z-index: 100; padding-bottom: 10px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .job-count { font-size: 16px; font-weight: bold; color: #666; }
+        .add-btn { background-color: #2481cc; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        
+        /* Search Bar */
+        .search-wrapper { display: flex; justify-content: center; margin-bottom: 15px; }
+        .search-bar { width: 100%; max-width: 400px; padding: 10px 15px; border: 1px solid #ccc; border-radius: 20px; font-size: 14px; outline: none; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+
+        /* Job Card Layout */
+        .job-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: background-color 0.2s ease; position: relative; }
+        .job-card.finished-card { background-color: #e3f2fd !important; }
+
+        .card-top { display: flex; align-items: center; justify-content: space-between; }
+        .job-info { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+        
+        /* Image Upload */
+        .image-upload-container { position: relative; width: 50px; height: 50px; flex-shrink: 0; }
+        .file-input { display: none; }
+        .job-thumb { width: 50px; height: 50px; background: #f8f9fa; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #aaa; text-align: center; border: 2px dashed #ccc; cursor: pointer; overflow: hidden; background-size: cover; background-position: center; background-repeat: no-repeat; }
+        .job-thumb .plus-icon { font-size: 18px; font-weight: bold; color: #888; margin-bottom: -2px; }
+        
+        /* Title & Date Section */
+        .title-container { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .title-row { display: flex; align-items: center; gap: 6px; width: 100%; flex-wrap: wrap; }
+        .job-title-input { font-size: 16px; font-weight: bold; color: #333; border: none; outline: none; background: transparent; flex: 1; min-width: 100px; padding: 2px 0; }
+        .job-title-input.finished-title { color: #0d47a1 !important; }
+        
+        /* Finished Badge */
+        .finished-badge { background-color: #2481cc; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; flex-shrink: 0; display: inline-block; }
+        
+        /* Manual Date Input */
+        .job-date-input-manual { font-size: 12px; color: #666; border: none; outline: none; background: transparent; width: 120px; padding: 2px 0; margin-top: 2px; }
+
+        /* Finished Button */
+        .status-circle { width: 24px; height: 24px; border: 2px solid #aaa; border-radius: 50%; cursor: pointer; margin-left: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background-color: white; }
+        .status-circle.done { background-color: #2481cc; border-color: #2481cc; }
+        .status-circle.done::after { content: ''; display: block; width: 6px; height: 11px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); margin-bottom: 2px; }
+
+        /* Card Action Footer */
+        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 5px; position: relative; }
+        .more-details-btn { color: #888; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 4px; user-select: none; margin: 0 auto; }
+        
+        /* Delete Button */
+        .delete-btn { background: none; border: none; color: #e53935; cursor: pointer; font-size: 16px; padding: 5px; position: absolute; right: 0; top: 0; display: flex; align-items: center; justify-content: center; opacity: 0.7; transition: opacity 0.2s ease; }
+        .delete-btn:hover { opacity: 1; }
+        
+        /* Workflow Table */
+        .workflow-details { display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
+        .workflow-details.active { display: block; }
+        .workflow-row { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #f9f9f9; gap: 10px; }
+        
+        .row-controls { display: flex; align-items: center; gap: 8px; width: 15%; min-width: 55px; }
+        .bulb-btn { cursor: pointer; font-size: 15px; user-select: none; opacity: 0.5; }
+        .bulb-btn.active { opacity: 1; }
+        .row-color-dot { width: 18px; height: 18px; border-radius: 50%; border: 1px solid #bbb; cursor: pointer; background-color: white; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
+        
+        .step-name { font-size: 14px; color: #555; width: 35%; font-weight: 500; }
+        .step-input { width: 50%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; transition: color 0.2s ease; }
+
+        /* Pagination Controls */
+        .pagination { display: flex; justify-content: center; align-items: center; margin: 20px 0; gap: 8px; }
+        .page-btn { padding: 6px 12px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .page-btn.active { background: #2481cc; color: white; border-color: #2481cc; }
+        .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <div class="header">
+            <div class="job-count" id="jobCount">0 jobs</div>
+            <button class="add-btn" onclick="addNewJob()">+ Add Job</button>
+        </div>
+        <div class="search-wrapper">
+            <input type="text" class="search-bar" id="searchBar" placeholder="🔍 စာသား သို့မဟုတ် ရက်စွဲဖြင့်ရှာဖွေရန်..." oninput="triggerSearch()">
+        </div>
+    </div>
+
+    <div id="jobListContainer"></div>
+
+    <div class="pagination" id="paginationContainer"></div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // အစ်ကို့ရဲ့ Firebase Realtime Database URL
+        const FIREBASE_URL = "https://printing-workflow-43d91-default-rtdb.asia-southeast1.firebasedatabase.app"; 
+
+        let jobsData = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let localExpandedState = {}; // တစ်ဦးချင်းစီရဲ့ အကွက်အပိတ်အဖွင့်ကို သီးသန့်ခွဲမှတ်ရန်
+
+        // Realtime Database ကနေ တခြားဖုန်းကပြင်လိုက်တာကို Live စောင့်ဖတ်မယ့်စနစ်
+        function initFirebaseSync() {
+            const eventSource = new EventSource(`${FIREBASE_URL}/jobs.json`);
+            eventSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data && data.data) {
+                    let firebaseJobs = [];
+                    if (Array.isArray(data.data)) {
+                        firebaseJobs = data.data.filter(Boolean);
+                    } else {
+                        firebaseJobs = Object.keys(data.data).map(key => data.data[key]);
+                    }
+                    // ID ကြီးရာမှ ငယ်ရာသို့ စီစဉ်ပေးခြင်း (အသစ်တွေ အပေါ်ရောက်ရန်)
+                    jobsData = firebaseJobs.sort((a, b) => b.id - a.id);
+                } else {
+                    jobsData = [];
+                }
+                renderApp();
+            };
+        }
+
+        // ပြင်ဆင်မှုတစ်ခုခုလုပ်တိုင်း Firebase ပေါ်သို့ သိမ်းဆည်းခြင်း
+        function saveToFirebase() {
+            fetch(`${FIREBASE_URL}/jobs.json`, {
+                method: 'PUT',
+                body: JSON.stringify(jobsData)
+            });
+        }
+
+        function addNewJob() {
+            const d = new Date();
+            const todayStr = `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
+            const newId = jobsData.length > 0 ? Math.max(...jobsData.map(j => j.id)) + 1 : 1;
+            
+            const newJob = {
+                id: newId,
+                title: "New Job Order #" + newId,
+                date: todayStr,
+                image: "",
+                isDone: false,
+                workflow: {
+                    paperType: { text: "", color: "white", bulb: "black" }, 
+                    ctp: { text: "", color: "white", bulb: "black" }, 
+                    press: { text: "", color: "white", bulb: "black" }, 
+                    lamination: { text: "", color: "white", bulb: "black" }, 
+                    dieFrame: { text: "", color: "white", bulb: "black" }, 
+                    dieCut: { text: "", color: "white", bulb: "black" }, 
+                    cutting: { text: "", color: "white", bulb: "black" }, 
+                    binding: { text: "", color: "white", bulb: "black" }, 
+                    zinc: { text: "", color: "white", bulb: "black" }, 
+                    goldFoil: { text: "", color: "white", bulb: "black" }
+                }
+            };
+            
+            jobsData.unshift(newJob);
+            currentPage = 1;
+            saveToFirebase();
+        }
+
+        function triggerSearch() {
+            currentPage = 1;
+            renderApp();
+        }
+
+        function renderApp() {
+            const searchInput = document.getElementById('searchBar').value.toLowerCase();
+            const filteredJobs = jobsData.filter(job => job && (job.title.toLowerCase().includes(searchInput) || job.date.toLowerCase().includes(searchInput)));
+
+            document.getElementById('jobCount').innerText = `${filteredJobs.length} jobs`;
+
+            const totalPages = Math.ceil(filteredJobs.length / itemsPerPage) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const jobsToDisplay = filteredJobs.slice(startIndex, startIndex + itemsPerPage);
+
+            const container = document.getElementById('jobListContainer');
+            container.innerHTML = "";
+
+            if (jobsToDisplay.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:#999;">ရှာဖွေမှုမတွေ့ရှိပါ...</div>`;
+            }
+
+            jobsToDisplay.forEach(job => {
+                const isExpanded = localExpandedState[job.id] || false;
+                const cardHTML = `
+                    <div class="job-card ${job.isDone ? 'finished-card' : ''}" id="card-${job.id}">
+                        <div class="card-top">
+                            <div class="job-info">
+                                <div class="image-upload-container">
+                                    <input type="file" accept="image/*" class="file-input" onchange="previewImage(this, ${job.id})">
+                                    <div class="job-thumb" onclick="triggerFileInput(this)" style="background-image: ${job.image ? `url(${job.image})` : 'none'}">
+                                        <span class="plus-icon" style="display: ${job.image ? 'none' : 'block'}">+</span>
+                                        <span style="display: ${job.image ? 'none' : 'block'}">Image</span>
+                                    </div>
+                                </div>
+                                <div class="title-container">
+                                    <div class="title-row">
+                                        <input type="text" class="job-title-input ${job.isDone ? 'finished-title' : ''}" value="${job.title}" placeholder="အော်ဒါအမည်" onchange="updateTitle(${job.id}, this.value)">
+                                        ${job.isDone ? '<span class="finished-badge">FINISHED</span>' : ''}
+                                    </div>
+                                    <input type="text" class="job-date-input-manual" value="${job.date}" placeholder="DD-MM-YYYY" onchange="updateDate(${job.id}, this.value)">
+                                </div>
+                            </div>
+                            <div class="status-circle ${job.isDone ? 'done' : ''}" onclick="toggleMainStatus(${job.id})"></div>
+                        </div>
+
+                        <div class="card-footer">
+                            <div class="more-details-btn" onclick="toggleDetails(${job.id}, this)">
+                                <span class="arrow">${isExpanded ? '▲' : '▼'}</span> <span class="text">${isExpanded ? 'Less' : 'More details'}</span>
+                            </div>
+                            <button class="delete-btn" onclick="deleteJob(${job.id})">🗑️</button>
+                        </div>
+
+                        <div class="workflow-details ${isExpanded ? 'active' : ''}">
+                            ${renderWorkflowRow(job, 'paperType', 'Paper Type')}
+                            ${renderWorkflowRow(job, 'ctp', 'CTP')}
+                            ${renderWorkflowRow(job, 'press', 'Press/Print')}
+                            ${renderWorkflowRow(job, 'lamination', 'Lamination')}
+                            ${renderWorkflowRow(job, 'dieFrame', 'Die Frame')}
+                            ${renderWorkflowRow(job, 'dieCut', 'Die Cut')}
+                            ${renderWorkflowRow(job, 'cutting', 'Cutting
