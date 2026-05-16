@@ -108,16 +108,18 @@
 
         // Realtime Database ကနေ တခြားဖုန်းကပြင်လိုက်တာကို Live စောင့်ဖတ်မယ့်စနစ်
         function initFirebaseSync() {
+            // လမ်းကြောင်းကို /jobs.json သို့ ပြောင်းလဲပြင်ဆင်ထားပါသည်
             const eventSource = new EventSource(`${FIREBASE_URL}/jobs.json`);
             eventSource.onmessage = function(event) {
                 const resData = JSON.parse(event.data);
                 
-                // Firebase Stream Event ကနေ လက်ခံရရှိတဲ့ data တည်ဆောက်ပုံကို စစ်ဆေးခြင်း
                 let rawJobs = null;
                 if (resData && resData.data !== undefined) {
                     rawJobs = resData.data;
                 } else if (resData && resData.path === "/") {
                     rawJobs = resData.data;
+                } else {
+                    rawJobs = resData; 
                 }
 
                 if (rawJobs) {
@@ -125,11 +127,10 @@
                     if (Array.isArray(rawJobs)) {
                         firebaseJobs = rawJobs.filter(Boolean);
                     } else if (typeof rawJobs === 'object') {
-                        firebaseJobs = Object.keys(rawJobs).map(key => rawJobs[key]);
+                        firebaseJobs = Object.keys(rawJobs).map(key => rawJobs[key]).filter(Boolean);
                     }
                     jobsData = firebaseJobs.sort((a, b) => b.id - a.id);
                 } else {
-                    // အကယ်၍ ဒေတာ လုံးဝမရှိသေးပါက Array အလွတ်တစ်ခုအဖြစ် သတ်မှတ်မည်
                     jobsData = [];
                 }
                 renderApp();
@@ -137,12 +138,12 @@
         }
 
         // ပြင်ဆင်မှုတစ်ခုခုလုပ်တိုင်း Firebase ပေါ်သို့ သိမ်းဆည်းခြင်း
-        function saveToFirebase() {
+        function saveToFirebase(shouldRender = true) {
             fetch(`${FIREBASE_URL}/jobs.json`, {
                 method: 'PUT',
                 body: JSON.stringify(jobsData)
             }).then(() => {
-                renderApp();
+                if (shouldRender) renderApp();
             });
         }
 
@@ -194,6 +195,12 @@
             const jobsToDisplay = filteredJobs.slice(startIndex, startIndex + itemsPerPage);
 
             const container = document.getElementById('jobListContainer');
+            
+            // Mouse Focus နှင့် Tab ပြဿနာ မဖြစ်စေရန် Input ပြန်မဆောက်မီ လက်ရှိ Focus ရှိနေသော Element ID နှင့် Cursor နေရာကို မှတ်ထားခြင်း
+            const activeElId = document.activeElement ? document.activeElement.id : null;
+            const selectionStart = document.activeElement ? document.activeElement.selectionStart : null;
+            const selectionEnd = document.activeElement ? document.activeElement.selectionEnd : null;
+
             container.innerHTML = "";
 
             if (jobsToDisplay.length === 0) {
@@ -215,10 +222,10 @@
                                 </div>
                                 <div class="title-container">
                                     <div class="title-row">
-                                        <input type="text" class="job-title-input ${job.isDone ? 'finished-title' : ''}" value="${job.title}" placeholder="အော်ဒါအမည်" onchange="updateTitle(${job.id}, this.value)">
+                                        <input type="text" id="title-${job.id}" class="job-title-input ${job.isDone ? 'finished-title' : ''}" value="${job.title}" placeholder="အော်ဒါအမည်" oninput="updateTitleLive(${job.id}, this.value)">
                                         ${job.isDone ? '<span class="finished-badge">FINISHED</span>' : ''}
                                     </div>
-                                    <input type="text" class="job-date-input-manual" value="${job.date}" placeholder="DD-MM-YYYY" onchange="updateDate(${job.id}, this.value)">
+                                    <input type="text" id="date-${job.id}" class="job-date-input-manual" value="${job.date}" placeholder="DD-MM-YYYY" oninput="updateDateLive(${job.id}, this.value)">
                                 </div>
                             </div>
                             <div class="status-circle ${job.isDone ? 'done' : ''}" onclick="toggleMainStatus(${job.id})"></div>
@@ -249,12 +256,24 @@
             });
 
             renderPaginationControls(totalPages);
+
+            // Focus အား မပျောက်ပျက်စေဘဲ မူလနေရာသို့ ပြန်လည်သတ်မှတ်ပေးခြင်း (နှစ်ချက်နှိပ်ရခြင်းနှင့် Tab နှိပ်မရခြင်း ပြဿနာအား ဖြေရှင်းချက်)
+            if (activeElId) {
+                const el = document.getElementById(activeElId);
+                if (el) {
+                    el.focus();
+                    if (selectionStart !== null && selectionEnd !== null && (el.type === 'text' || el.type === 'search')) {
+                        el.setSelectionRange(selectionStart, selectionEnd);
+                    }
+                }
+            }
         }
 
         function renderWorkflowRow(job, key, label) {
             const item = job.workflow[key];
             const activeClass = item.bulb !== 'black' ? 'active' : '';
             const borderStyle = item.color !== 'white' ? `background-color: ${item.color}; border-color: ${item.color};` : 'background-color: white;';
+            const inputId = `input-${job.id}-${key}`;
             
             return `
                 <div class="workflow-row">
@@ -263,7 +282,7 @@
                         <div class="row-color-dot" style="${borderStyle}" onclick="changeRowColor(${job.id}, '${key}', this)"></div>
                     </div>
                     <span class="step-name">${label}</span>
-                    <input type="text" class="step-input" style="color: ${item.bulb};" value="${item.text}" placeholder="—" onchange="updateWorkflowText(${job.id}, '${key}', this.value)">
+                    <input type="text" id="${inputId}" class="step-input" style="color: ${item.bulb};" value="${item.text}" placeholder="—" oninput="updateWorkflowTextLive(${job.id}, '${key}', this.value)">
                 </div>
             `;
         }
@@ -324,19 +343,29 @@
             }
         }
 
-        function updateTitle(id, value) {
+        // Live Input ပြုပြင်မှုများ (စာရိုက်နေစဉ် Focus မပြတ်ဘဲ အဆင်ပြေစေရန်)
+        function updateTitleLive(id, value) {
             const job = jobsData.find(j => j.id === id);
-            if (job && job.title !== value) { job.title = value; saveToFirebase(); }
+            if (job) { 
+                job.title = value; 
+                saveToFirebase(false); // UI ကို ချက်ချင်းပြန်မဆောက်ဘဲ ဒေတာပဲ လှမ်းသိမ်းမည်
+            }
         }
 
-        function updateDate(id, value) {
+        function updateDateLive(id, value) {
             const job = jobsData.find(j => j.id === id);
-            if (job && job.date !== value) { job.date = value; saveToFirebase(); }
+            if (job) { 
+                job.date = value; 
+                saveToFirebase(false); 
+            }
         }
 
-        function updateWorkflowText(id, key, value) {
+        function updateWorkflowTextLive(id, key, value) {
             const job = jobsData.find(j => j.id === id);
-            if (job && job.workflow[key].text !== value) { job.workflow[key].text = value; saveToFirebase(); }
+            if (job) { 
+                job.workflow[key].text = value; 
+                saveToFirebase(false); 
+            }
         }
 
         function changeRowColor(id, key, dot) {
