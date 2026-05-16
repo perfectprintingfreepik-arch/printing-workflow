@@ -59,6 +59,7 @@
         /* Workflow Table */
         .workflow-details { display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
         .workflow-details.active { display: block; }
+        .workflow-details.active { display: block; }
         .workflow-row { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #f9f9f9; gap: 10px; }
         
         .row-controls { display: flex; align-items: center; gap: 8px; width: 15%; min-width: 55px; }
@@ -104,9 +105,8 @@
         const itemsPerPage = 10;
         let localExpandedState = {}; 
 
-        // Firebase ကနေ Live အမှန်ကန်ဆုံး နားထောင်မယ့် စနစ်အသစ်
         function initFirebaseSync() {
-            // တစ်ကြိမ်တည်း ဒေတာအကုန်ကို fetch အရင်လုပ်ပြီး အဆင်သင့်ပြထားမယ်
+            // ကနဦးအစ ဒေတာဖတ်ခြင်း
             fetch(`${FIREBASE_URL}/jobs.json`)
             .then(res => res.json())
             .then(data => {
@@ -114,28 +114,34 @@
                 renderApp();
             });
 
-            // နောက်ထပ် ဖုန်းတွေကနေ ပြောင်းလဲသမျှကို Live ဖတ်မယ့် အပိုင်း
+            // Live Stream စောင့်ကြည့်ခြင်း
             const eventSource = new EventSource(`${FIREBASE_URL}/jobs.json`);
             eventSource.onmessage = function(event) {
                 const stream = JSON.parse(event.data);
                 if (!stream) return;
 
-                // ကနဦးအစ သို့မဟုတ် ဒေတာတစ်ခုလုံး ပြောင်းလဲသွားချိန်
                 if (stream.path === "/") {
                     handleFirebaseData(stream.data);
                     renderApp();
                 } 
-                // အကွက်တစ်ခုချင်းစီ သို့မဟုတ် workflow ထဲက စာသားပဲ လာပြင်သွားချိန် (ဒီနေရာမှာ UI တစ်ခုလုံး ပြန်မဆောက်ဘဲ ဒေတာပဲ Update လုပ်မယ်)
                 else if (stream.path && stream.path !== "/") {
-                    const pathParts = stream.path.split('/'); // ဥပမာ: ["", "0", "workflow", "paperType", "text"]
-                    if (pathParts.length >= 2) {
-                        const index = parseInt(pathParts[1]);
-                        if (!isNaN(index)) {
-                            // Firebase ပေါ်က index တိုက်ရိုက်အတိုင်း ဒေတာထဲ လှမ်းထည့်ခြင်း
-                            updateLocalDataByPath(index, pathParts.slice(2), stream.data);
-                            // Live ပေါ်လာအောင် UI ထဲက သက်ဆိုင်ရာ Input ကွက်ကိုပဲ ရှာပြီး တိုက်ရိုက် စာသားပြောင်းပေးမယ် (Focus မပျောက်စေရန်)
-                            updateDOMDirectly(index, pathParts.slice(2), stream.data);
-                        }
+                    const pathParts = stream.path.split('/'); 
+                    const dbKey = pathParts[1]; 
+                    
+                    // Live ဖတ်တဲ့အခါ ၎င်းရဲ့ DB Key အလိုက် ဒေတာကို ရှာဖွေပြင်ဆင်ခြင်း
+                    let jobIndex = jobsData.findIndex(j => j && j.dbKey == dbKey);
+                    
+                    if (jobIndex !== -1) {
+                        updateLocalDataByPath(jobIndex, pathParts.slice(2), stream.data);
+                        updateDOMDirectly(jobsData[jobIndex].id, pathParts.slice(2), stream.data);
+                    } else {
+                        // ဒေတာအသစ် လှမ်းထည့်လိုက်တာဆိုရင် တစ်ခေါက်ပြန် Fetch လုပ်ပေးမယ်
+                        fetch(`${FIREBASE_URL}/jobs.json`)
+                        .then(res => res.json())
+                        .then(data => {
+                            handleFirebaseData(data);
+                            renderApp();
+                        });
                     }
                 }
             };
@@ -143,24 +149,26 @@
 
         function handleFirebaseData(rawJobs) {
             if (!rawJobs) { jobsData = []; return; }
-            let arr = [];
-            if (Array.isArray(rawJobs)) {
-                arr = rawJobs;
-            } else if (typeof rawJobs === 'object') {
-                arr = Object.keys(rawJobs).map(k => rawJobs[k]);
-            }
-            // Array ထဲမှာ null တွေပါလာရင် ရှင်းထုတ်ပြီး ID အစဉ်အတိုင်း သိမ်းဆည်းမယ်
-            jobsData = arr.map((job, index) => {
+            const arr = [];
+            
+            // Object သို့မဟုတ် Array ပုံစံနှစ်မျိုးလုံးမှ ဒေတာများကို ပုံစံမှန်ပြောင်းလဲခြင်း
+            Object.keys(rawJobs).forEach(key => {
+                const job = rawJobs[key];
                 if (job) {
-                    if (!job.id) job.id = index;
-                    return job;
+                    job.dbKey = key; // Firebase Object Key ကို မှတ်ထားမယ်
+                    if (!job.id && job.id !== 0) {
+                        job.id = parseInt(key) || Math.floor(Math.random() * 10000);
+                    } else {
+                        job.id = parseInt(job.id);
+                    }
+                    arr.push(job);
                 }
-                return null;
             });
+            jobsData = arr;
         }
 
         function updateLocalDataByPath(index, paths, value) {
-            if (!jobsData[index]) jobsData[index] = { id: index, workflow: {} };
+            if (!jobsData[index]) return;
             let current = jobsData[index];
             for (let i = 0; i < paths.length - 1; i++) {
                 if (!current[paths[i]]) current[paths[i]] = {};
@@ -171,20 +179,16 @@
             }
         }
 
-        // အခြားဖုန်းက ရိုက်လိုက်တဲ့ စာသားကို Focus မပျောက်ဘဲ မျက်စိရှေ့မှာ Live ပြောင်းပေးမည့်စနစ်
-        function updateDOMDirectly(index, paths, value) {
-            const job = jobsData[index];
-            if (!job) return;
+        function updateDOMDirectly(jobId, paths, value) {
             if (paths.length === 3 && paths[0] === 'workflow' && paths[2] === 'text') {
                 const key = paths[1];
-                const inputEl = document.querySelector(`#card-${job.id} .step-input[data-key="${key}"]`);
+                const inputEl = document.querySelector(`#card-${jobId} .step-input[data-key="${key}"]`);
                 if (inputEl && document.activeElement !== inputEl) {
                     inputEl.value = value || "";
                 }
             }
-            // အလုပ်ပြီး/မပြီး Status ကို Live ပြောင်းခြင်း
             if (paths.length === 1 && paths[0] === 'isDone') {
-                const cardEl = document.getElementById(`card-${job.id}`);
+                const cardEl = document.getElementById(`card-${jobId}`);
                 const circleEl = cardEl ? cardEl.querySelector('.status-circle') : null;
                 if (cardEl && circleEl) {
                     if (value) {
@@ -198,15 +202,21 @@
             }
         }
 
-        // ဒေတာအသစ်ထည့်ရင် Database ရဲ့ အခန်းအသစ် (Next Index) မှာ ကွက်တိသွားသိမ်းမည့်စနစ်
+        // အော်ဒါအသစ်ထည့်ရင် နံပါတ်စဉ်ကျော်မသွားဘဲ အမြဲတမ်း တိုးသွားစေမည့် စနစ်သစ်
         function addNewJob() {
             const d = new Date();
             const todayStr = `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
-            const nextIndex = jobsData.length;
+            
+            // လက်ရှိရှိသမျှထဲမှာ အကြီးဆုံး ID ကိုရှာပြီး +၁ ပေါင်းမယ် (ကြားထဲကဖြတ်လဲ နံပါတ်စဉ်မလွဲတော့ပါ)
+            let maxId = 0;
+            jobsData.forEach(j => {
+                if (j && j.id > maxId) maxId = j.id;
+            });
+            const nextId = maxId + 1;
             
             const newJob = {
-                id: nextIndex,
-                title: "New Job Order #" + (nextIndex + 1),
+                id: nextId,
+                title: "New Job Order #" + nextId,
                 date: todayStr,
                 image: "",
                 isDone: false,
@@ -224,12 +234,13 @@
                 }
             };
             
-            // Firebase ပေါ်သို့ index အလိုက် တိုက်ရိုက်လှမ်းဆောက်ပြီး သိမ်းဆည်းခြင်း
-            fetch(`${FIREBASE_URL}/jobs/${nextIndex}.json`, {
+            // Firebase ပေါ်မှာ Unique Key အဖြစ် သိမ်းဆည်းခြင်း
+            fetch(`${FIREBASE_URL}/jobs/${nextId}.json`, {
                 method: 'PUT',
                 body: JSON.stringify(newJob)
             }).then(() => {
-                jobsData[nextIndex] = newJob;
+                newJob.dbKey = nextId.toString();
+                jobsData.push(newJob);
                 renderApp();
             });
         }
@@ -242,14 +253,14 @@
         function renderApp() {
             const searchInput = document.getElementById('searchBar').value.toLowerCase();
             
-            // UI ထဲမှာပြရင် အသစ်ဆုံးကို အပေါ်ဆုံးကပြဖို့ ပြောင်းပြန်လှန်စစ်ထုတ်ခြင်း
-            const validJobs = jobsData.filter(Boolean);
-            const filteredJobs = validJobs.filter(job => 
-                (job.title && job.title.toLowerCase().includes(searchInput)) || 
-                (job.date && job.date.toLowerCase().includes(searchInput))
+            const filteredJobs = jobsData.filter(job => 
+                job && (
+                    (job.title && job.title.toLowerCase().includes(searchInput)) || 
+                    (job.date && job.date.toLowerCase().includes(searchInput))
+                )
             );
 
-            // စီစဉ်ပုံ - ID အကြီးဆုံး (နောက်ဆုံးထည့်တဲ့အော်ဒါ) ကို ထိပ်ဆုံးကပြရန်
+            // ID အကြီးဆုံး (နောက်ဆုံးထည့်တဲ့အော်ဒါ) ကို ထိပ်ဆုံးကပြရန်
             filteredJobs.sort((a, b) => b.id - a.id);
 
             document.getElementById('jobCount').innerText = `${filteredJobs.length} jobs`;
@@ -381,12 +392,11 @@
             }
         }
 
-        // စာရိုက်ပြီး ထွက်လိုက်တာနဲ့ သက်ဆိုင်ရာ အကွက်လေးကိုပဲ Firebase ပေါ် တိုက်ရိုက် PATCH စနစ်နဲ့ သွားသိမ်းမယ် (UI ပြန်မဆောက်လို့ Focus မပျောက်ပါ)
         function updateWorkflowText(id, key, value) {
             const job = jobsData.find(j => j && j.id === id);
-            if (job) {
+            if (job && job.dbKey) {
                 job.workflow[key].text = value;
-                fetch(`${FIREBASE_URL}/jobs/${id}/workflow/${key}.json`, {
+                fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
                     method: 'PATCH',
                     body: JSON.stringify({ text: value })
                 });
@@ -395,9 +405,9 @@
 
         function updateTitle(id, value) {
             const job = jobsData.find(j => j && j.id === id);
-            if (job) {
+            if (job && job.dbKey) {
                 job.title = value;
-                fetch(`${FIREBASE_URL}/jobs/${id}.json`, {
+                fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
                     method: 'PATCH',
                     body: JSON.stringify({ title: value })
                 });
@@ -406,9 +416,9 @@
 
         function updateDate(id, value) {
             const job = jobsData.find(j => j && j.id === id);
-            if (job) {
+            if (job && job.dbKey) {
                 job.date = value;
-                fetch(`${FIREBASE_URL}/jobs/${id}.json`, {
+                fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
                     method: 'PATCH',
                     body: JSON.stringify({ date: value })
                 });
@@ -417,9 +427,9 @@
 
         function toggleMainStatus(id) {
             const job = jobsData.find(j => j && j.id === id);
-            if (job) {
+            if (job && job.dbKey) {
                 job.isDone = !job.isDone;
-                fetch(`${FIREBASE_URL}/jobs/${id}.json`, {
+                fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
                     method: 'PATCH',
                     body: JSON.stringify({ isDone: job.isDone })
                 }).then(() => renderApp());
@@ -429,7 +439,7 @@
         function changeRowColor(id, key, dot) {
             const pink = 'rgb(255, 64, 129)';
             const job = jobsData.find(j => j && j.id === id);
-            if (!job) return;
+            if (!job || !job.dbKey) return;
 
             let currentColor = window.getComputedStyle(dot).backgroundColor;
             if (currentColor === 'rgb(255, 255, 255)' || dot.style.backgroundColor === 'white') {
@@ -440,7 +450,7 @@
                 job.workflow[key].color = 'white';
             }
             
-            fetch(`${FIREBASE_URL}/jobs/${id}/workflow/${key}.json`, {
+            fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
                 method: 'PATCH',
                 body: JSON.stringify({ color: job.workflow[key].color })
             }).then(() => renderApp());
@@ -448,7 +458,7 @@
 
         function toggleBulbColor(id, key, bulb) {
             const job = jobsData.find(j => j && j.id === id);
-            if (!job) return;
+            if (!job || !job.dbKey) return;
 
             let currentBulb = job.workflow[key].bulb;
             if (currentBulb === 'black' || currentBulb === '') {
@@ -459,18 +469,22 @@
                 job.workflow[key].bulb = 'black';
             }
 
-            fetch(`${FIREBASE_URL}/jobs/${id}/workflow/${key}.json`, {
+            fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
                 method: 'PATCH',
                 body: JSON.stringify({ bulb: job.workflow[key].bulb })
             }).then(() => renderApp());
         }
 
+        // ဘယ်လိုဒေတာဟောင်းမျိုးမဆို အမြစ်ပြတ်အောင် တိုက်ရိုက် Key ရှာဖျက်မည့် စနစ်သစ်
         function deleteJob(id) {
-            if (confirm("ဒီအော်ဒါစာရင်းကို ဖြတ်ပစ်ရန် သေချက်ပါသလား?")) {
-                fetch(`${FIREBASE_URL}/jobs/${id}.json`, {
+            const job = jobsData.find(j => j && j.id === id);
+            if (!job) return;
+
+            if (confirm(`ဒီအော်ဒါစာရင်း #${job.id} ကို ဖြတ်ပစ်ရန် သေချာပါသလား?`)) {
+                fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
                     method: 'DELETE'
                 }).then(() => {
-                    jobsData[id] = null;
+                    jobsData = jobsData.filter(j => j && j.id !== id);
                     renderApp();
                 });
             }
@@ -498,9 +512,9 @@
                         
                         const base64Image = canvas.toDataURL('image/jpeg', 0.6);
                         const job = jobsData.find(j => j && j.id === jobId);
-                        if (job) {
+                        if (job && job.dbKey) {
                             job.image = base64Image;
-                            fetch(`${FIREBASE_URL}/jobs/${jobId}.json`, {
+                            fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
                                 method: 'PATCH',
                                 body: JSON.stringify({ image: base64Image })
                             }).then(() => renderApp());
@@ -512,7 +526,6 @@
             }
         }
 
-        // App စဖွင့်တာနဲ့ Database Live ချိတ်ဆက်မှုကို မောင်းနှင်ခြင်း
         initFirebaseSync();
     </script>
 </body>
