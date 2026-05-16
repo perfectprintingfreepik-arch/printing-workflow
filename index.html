@@ -59,7 +59,6 @@
         /* Workflow Table */
         .workflow-details { display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
         .workflow-details.active { display: block; }
-        .workflow-details.active { display: block; }
         .workflow-row { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #f9f9f9; gap: 10px; }
         
         .row-controls { display: flex; align-items: center; gap: 8px; width: 15%; min-width: 55px; }
@@ -95,8 +94,7 @@
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+        if(tg) { tg.ready(); tg.expand(); }
 
         const FIREBASE_URL = "https://printing-workflow-43d91-default-rtdb.asia-southeast1.firebasedatabase.app"; 
 
@@ -114,7 +112,7 @@
                 renderApp();
             });
 
-            // Live Stream စောင့်ကြည့်ခြင်း
+            // တခြားဖုန်းက ပြင်လိုက်တာနဲ့ ချက်ချင်းမျက်စိရှေ့ Auto Update ဖြစ်စေမည့် Live Stream စနစ်ဆန်း
             const eventSource = new EventSource(`${FIREBASE_URL}/jobs.json`);
             eventSource.onmessage = function(event) {
                 const stream = JSON.parse(event.data);
@@ -128,14 +126,14 @@
                     const pathParts = stream.path.split('/'); 
                     const dbKey = pathParts[1]; 
                     
-                    // Live ဖတ်တဲ့အခါ ၎င်းရဲ့ DB Key အလိုက် ဒေတာကို ရှာဖွေပြင်ဆင်ခြင်း
                     let jobIndex = jobsData.findIndex(j => j && j.dbKey == dbKey);
                     
                     if (jobIndex !== -1) {
                         updateLocalDataByPath(jobIndex, pathParts.slice(2), stream.data);
+                        // အတင်းအကြပ် ချက်ချင်းလိုက်ပြောင်းခိုင်းမည် (မဆိုင်းမတွ Auto Update စနစ်)
                         updateDOMDirectly(jobsData[jobIndex].id, pathParts.slice(2), stream.data);
                     } else {
-                        // ဒေတာအသစ် လှမ်းထည့်လိုက်တာဆိုရင် တစ်ခေါက်ပြန် Fetch လုပ်ပေးမယ်
+                        // ဒေတာအသစ် လှမ်းထည့်လိုက်လျှင်
                         fetch(`${FIREBASE_URL}/jobs.json`)
                         .then(res => res.json())
                         .then(data => {
@@ -150,12 +148,10 @@
         function handleFirebaseData(rawJobs) {
             if (!rawJobs) { jobsData = []; return; }
             const arr = [];
-            
-            // Object သို့မဟုတ် Array ပုံစံနှစ်မျိုးလုံးမှ ဒေတာများကို ပုံစံမှန်ပြောင်းလဲခြင်း
             Object.keys(rawJobs).forEach(key => {
                 const job = rawJobs[key];
                 if (job) {
-                    job.dbKey = key; // Firebase Object Key ကို မှတ်ထားမယ်
+                    job.dbKey = key; 
                     if (!job.id && job.id !== 0) {
                         job.id = parseInt(key) || Math.floor(Math.random() * 10000);
                     } else {
@@ -179,35 +175,79 @@
             }
         }
 
+        // တခြားဖုန်းကနေ ရိုက်လိုက်သမျှ စာသား/မီးသီး/အရောင် အကုန်လုံးကို Reload မလိုဘဲ ချက်ချင်း Live ပြောင်းပေးသည့်စနစ်
         function updateDOMDirectly(jobId, paths, value) {
+            const cardEl = document.getElementById(`card-${jobId}`);
+            if (!cardEl) return;
+
+            // စာသားကွက်များ Update ဖြစ်ခြင်း
             if (paths.length === 3 && paths[0] === 'workflow' && paths[2] === 'text') {
                 const key = paths[1];
-                const inputEl = document.querySelector(`#card-${jobId} .step-input[data-key="${key}"]`);
-                if (inputEl && document.activeElement !== inputEl) {
+                const inputEl = cardEl.querySelector(`.step-input[data-key="${key}"]`);
+                if (inputEl) {
                     inputEl.value = value || "";
                 }
             }
-            if (paths.length === 1 && paths[0] === 'isDone') {
-                const cardEl = document.getElementById(`card-${jobId}`);
-                const circleEl = cardEl ? cardEl.querySelector('.status-circle') : null;
-                if (cardEl && circleEl) {
-                    if (value) {
-                        cardEl.classList.add('finished-card');
-                        circleEl.classList.add('done');
+            // မီးသီးအရောင်ပြောင်းလဲခြင်း
+            if (paths.length === 3 && paths[0] === 'workflow' && paths[2] === 'bulb') {
+                const key = paths[1];
+                const bulbEl = cardEl.querySelector(`.bulb-btn[data-key="${key}"]`);
+                const inputEl = cardEl.querySelector(`.step-input[data-key="${key}"]`);
+                if (bulbEl) {
+                    if (value !== 'black' && value !== '') {
+                        bulbEl.classList.add('active');
                     } else {
-                        cardEl.classList.remove('finished-card');
-                        circleEl.classList.remove('done');
+                        bulbEl.classList.remove('active');
                     }
+                }
+                if (inputEl) {
+                    inputEl.style.color = value || 'black';
+                }
+            }
+            // စာတန်းနောက်ခံဝိုင်းလေး အရောင်ပြောင်းလဲခြင်း
+            if (paths.length === 3 && paths[0] === 'workflow' && paths[2] === 'color') {
+                const key = paths[1];
+                const dotEl = cardEl.querySelector(`.row-color-dot[data-key="${key}"]`);
+                if (dotEl) {
+                    if (value !== 'white' && value !== '') {
+                        dotEl.style.backgroundColor = value;
+                        dotEl.style.borderColor = value;
+                    } else {
+                        dotEl.style.backgroundColor = 'white';
+                        dotEl.style.borderColor = '#bbb';
+                    }
+                }
+            }
+            // အော်ဒါ ခေါင်းစဉ် ပြောင်းလဲခြင်း
+            if (paths.length === 1 && paths[0] === 'title') {
+                const titleInput = cardEl.querySelector('.job-title-input');
+                if (titleInput) titleInput.value = value || "";
+            }
+            // ရက်စွဲ ပြောင်းလဲခြင်း
+            if (paths.length === 1 && paths[0] === 'date') {
+                const dateInput = cardEl.querySelector('.job-date-input-manual');
+                if (dateInput) dateInput.value = value || "";
+            }
+            // အလုပ်ပြီး/မပြီး Status ကို Live ပြောင်းခြင်း
+            if (paths.length === 1 && paths[0] === 'isDone') {
+                const circleEl = cardEl.querySelector('.status-circle');
+                const titleInput = cardEl.querySelector('.job-title-input');
+                if (value) {
+                    cardEl.classList.add('finished-card');
+                    if(circleEl) circleEl.classList.add('done');
+                    if(titleInput) titleInput.classList.add('finished-title');
+                } else {
+                    cardEl.classList.remove('finished-card');
+                    if(circleEl) circleEl.classList.remove('done');
+                    if(titleInput) titleInput.classList.remove('finished-title');
                 }
             }
         }
 
-        // အော်ဒါအသစ်ထည့်ရင် နံပါတ်စဉ်ကျော်မသွားဘဲ အမြဲတမ်း တိုးသွားစေမည့် စနစ်သစ်
         function addNewJob() {
             const d = new Date();
             const todayStr = `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
             
-            // လက်ရှိရှိသမျှထဲမှာ အကြီးဆုံး ID ကိုရှာပြီး +၁ ပေါင်းမယ် (ကြားထဲကဖြတ်လဲ နံပါတ်စဉ်မလွဲတော့ပါ)
             let maxId = 0;
             jobsData.forEach(j => {
                 if (j && j.id > maxId) maxId = j.id;
@@ -234,7 +274,6 @@
                 }
             };
             
-            // Firebase ပေါ်မှာ Unique Key အဖြစ် သိမ်းဆည်းခြင်း
             fetch(`${FIREBASE_URL}/jobs/${nextId}.json`, {
                 method: 'PUT',
                 body: JSON.stringify(newJob)
@@ -252,7 +291,6 @@
 
         function renderApp() {
             const searchInput = document.getElementById('searchBar').value.toLowerCase();
-            
             const filteredJobs = jobsData.filter(job => 
                 job && (
                     (job.title && job.title.toLowerCase().includes(searchInput)) || 
@@ -260,7 +298,6 @@
                 )
             );
 
-            // ID အကြီးဆုံး (နောက်ဆုံးထည့်တဲ့အော်ဒါ) ကို ထိပ်ဆုံးကပြရန်
             filteredJobs.sort((a, b) => b.id - a.id);
 
             document.getElementById('jobCount').innerText = `${filteredJobs.length} jobs`;
@@ -342,11 +379,11 @@
             return `
                 <div class="workflow-row">
                     <div class="row-controls">
-                        <span class="bulb-btn ${activeClass}" onclick="toggleBulbColor(${job.id}, '${key}', this)">💡</span>
-                        <div class="row-color-dot" style="${borderStyle}" onclick="changeRowColor(${job.id}, '${key}', this)"></div>
+                        <span class="bulb-btn ${activeClass}" data-key="${key}" onclick="toggleBulbColor(${job.id}, '${key}', this)">💡</span>
+                        <div class="row-color-dot" data-key="${key}" style="${borderStyle}" onclick="changeRowColor(${job.id}, '${key}', this)"></div>
                     </div>
                     <span class="step-name">${label}</span>
-                    <input type="text" class="step-input" data-key="${key}" style="color: ${item.bulb || 'black'};" value="${item.text || ''}" placeholder="—" onchange="updateWorkflowText(${job.id}, '${key}', this.value)">
+                    <input type="text" class="step-input" data-key="${key}" style="color: ${item.bulb || 'black'};" value="${item.text || ''}" placeholder="—" oninput="updateWorkflowTextLive(${job.id}, '${key}', this.value)">
                 </div>
             `;
         }
@@ -392,7 +429,8 @@
             }
         }
 
-        function updateWorkflowText(id, key, value) {
+        // စာရိုက်နေစဉ်အတွင်း တစ်ဖက်ဖုန်းမှာ တိုက်ရိုက် Auto Update ပြေးဖြစ်စေမည့် စနစ်
+        function updateWorkflowTextLive(id, key, value) {
             const job = jobsData.find(j => j && j.id === id);
             if (job && job.dbKey) {
                 job.workflow[key].text = value;
@@ -432,7 +470,7 @@
                 fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
                     method: 'PATCH',
                     body: JSON.stringify({ isDone: job.isDone })
-                }).then(() => renderApp());
+                });
             }
         }
 
@@ -453,7 +491,7 @@
             fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
                 method: 'PATCH',
                 body: JSON.stringify({ color: job.workflow[key].color })
-            }).then(() => renderApp());
+            });
         }
 
         function toggleBulbColor(id, key, bulb) {
@@ -472,10 +510,9 @@
             fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
                 method: 'PATCH',
                 body: JSON.stringify({ bulb: job.workflow[key].bulb })
-            }).then(() => renderApp());
+            });
         }
 
-        // ဘယ်လိုဒေတာဟောင်းမျိုးမဆို အမြစ်ပြတ်အောင် တိုက်ရိုက် Key ရှာဖျက်မည့် စနစ်သစ်
         function deleteJob(id) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job) return;
