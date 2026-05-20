@@ -135,7 +135,7 @@
         let currentPage = 1;
         const itemsPerPage = 10;
         let localExpandedState = {}; 
-        let currentFilter = 'all'; // Default အဖြစ် All ကိုပြပါမည်။
+        let currentFilter = 'all'; 
         let activePreviewJobId = null; 
 
         function initFirebaseSync() {
@@ -202,10 +202,11 @@
             }
         }
 
+        // 🔥 အဓိကပြင်ဆင်လိုက်သော ချက်ချင်း Live အရောင်ပြောင်းစေမည့် စနစ်သစ် Logic
         function updateDOMDirectly(jobId, paths, value) {
             const cardEl = document.getElementById(`card-${jobId}`);
             
-            // ၁။ ပုံပြောင်းလဲမှုရှိပါက Live ချက်ချင်းပြောင်းပေးရန် (Thumbnail ရော Preview မော်ဒယ်ပါ)
+            // ၁။ ပုံပြောင်းလဲမှုရှိပါက Live ချက်ချင်းပြောင်းပေးရန်
             if (paths.length === 1 && paths[0] === 'image') {
                 if(cardEl) {
                     const thumbEl = cardEl.querySelector('.job-thumb');
@@ -220,28 +221,28 @@
                     }
                 }
                 if (activePreviewJobId === jobId && document.getElementById('imagePreviewModal').style.display === 'flex') {
-                    if(value) {
-                        document.getElementById('modalPreviewImg').src = value;
-                    } else {
-                        closeImagePreview();
-                    }
+                    if(value) document.getElementById('modalPreviewImg').src = value;
+                    else closeImagePreview();
                 }
                 return;
             }
 
             if (!cardEl) return;
 
-            if (paths.length === 3 && paths[0] === 'workflow' && paths[2] === 'text') {
-                const key = paths[1];
-                const inputEl = cardEl.querySelector(`.step-input[data-key="${key}"]`);
-                if (inputEl && document.activeElement !== inputEl) {
-                    inputEl.value = value || "";
-                }
+            // ၂။ စာသားရိုက်ချက်ချင်းပြောင်းလဲမှုဖြစ်စေရန်စစ်ဆေးခြင်း
+            let isWorkflowChange = false;
+            let key = "";
+
+            if (paths.length === 3 && paths[0] === 'workflow') {
+                key = paths[1];
+                isWorkflowChange = true;
+            } else if (paths.length === 2 && paths[0] === 'workflow') {
+                // 🔥 ပုဒ်မခွဲ (၂) အရ Firebase က Object တစ်ခုလုံး စုပြီး လှမ်းပို့လာပါက ဒီနေရာကနေ ဖမ်းပါမည်။
+                key = paths[1];
+                isWorkflowChange = true;
             }
-            
-            // Real-time တိုက်ရိုက် UI ပေါ်ချက်ချင်းပေါ်စေမည့် မီးလုံးနှင့် စာရိုက်ကွက် Logic
-            if (paths.length === 3 && paths[0] === 'workflow' && (paths[2] === 'bulb' || paths[2] === 'color')) {
-                const key = paths[1];
+
+            if (isWorkflowChange) {
                 const bulbEl = cardEl.querySelector(`.bulb-btn[data-key="${key}"]`);
                 const dotEl = cardEl.querySelector(`.color-dot[data-key="${key}"]`);
                 const inputEl = cardEl.querySelector(`.step-input[data-key="${key}"]`);
@@ -250,8 +251,15 @@
                 if (job && job.workflow && job.workflow[key]) {
                     const item = job.workflow[key];
                     
+                    // သက်ဆိုင်ရာ စာရိုက်ကွက် စာသားများကိုလည်း Live ထည့်ပေးခြင်း
+                    if (inputEl && document.activeElement !== inputEl) {
+                        inputEl.value = item.text || "";
+                    }
+                    
+                    // အရောင်အဝိုင်းလေး သတ်မှတ်ခြင်း
                     if(dotEl) dotEl.style.backgroundColor = item.color || 'white';
 
+                    // မီးလုံးနှိပ်မှုကြောင့် စာရိုက်ကွက် (Input) ကို ချက်ချင်း မျက်စိရှေ့တင် Live အရောင်ပြောင်းပေးခြင်း
                     if (inputEl) {
                         if (item.bulb === 'red') {
                             inputEl.style.backgroundColor = '#e53935'; 
@@ -294,8 +302,6 @@
             
             const filteredJobs = jobsData.filter(job => {
                 if (!job) return false;
-                
-                // All, Unfinished, Finished Tab စစ်ထုတ်ချက် Logic
                 let matchTab = true;
                 if (currentFilter === 'finished') matchTab = job.isDone === true;
                 else if (currentFilter === 'unfinished') matchTab = !job.isDone;
@@ -402,7 +408,6 @@
             `;
         }
 
-        // 🖼️ ပုံနှိပ်ခြင်းလုပ်ဆောင်ချက် ပေါင်းစပ် Logic (မရှိသေးလျှင်တင်မည်၊ ရှိပြီးသားဆိုလျှင် Preview ပြမည်)
         function handleImageClick(id, thumbEl) {
             const job = jobsData.find(j => j && j.id === id);
             if (job && job.image) {
@@ -427,7 +432,7 @@
             const fileInput = document.getElementById('modalFileInput');
             if (fileInput.files && fileInput.files[0] && activePreviewJobId) {
                 processAndUploadImage(fileInput.files[0], activePreviewJobId);
-                fileInput.value = ""; // Clear file input
+                fileInput.value = ""; 
             }
         }
 
@@ -437,7 +442,6 @@
             }
         }
 
-        // ပုံဆိုဒ်ချုံ့ပြီး Firebase သို့တိုက်ရိုက် အစားထိုး သိမ်းဆည်းသည့်စနစ်
         function processAndUploadImage(file, jobId) {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -467,7 +471,6 @@
             reader.readAsDataURL(file);
         }
 
-        // 💡 မီးလုံးနှိပ်ခြင်း Logic
         function toggleBulbLogic(id, key) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job || !job.dbKey) return;
@@ -486,7 +489,6 @@
             });
         }
 
-        // 🔴 ဝိုင်းလေးနှိပ်ခြင်း Logic
         function toggleColorCircle(id, key) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job || !job.dbKey) return;
