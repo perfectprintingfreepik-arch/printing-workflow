@@ -9,6 +9,13 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #f0f2f5; padding: 15px; color: #333; }
         
+        /* PIN Lock Overlay Screen */
+        .pin-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:#2481cc; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        .pin-box { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); text-align: center; width: 90%; max-width: 320px; color: #333; }
+        .pin-input { width: 100%; padding: 12px; text-align: center; font-size: 22px; letter-spacing: 8px; border: 2px solid #ccc; border-radius: 8px; margin: 15px 0; outline: none; }
+        .pin-btn { background: #2481cc; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .pin-error { color: #e53935; font-size: 13px; font-weight: bold; margin-top: 5px; display: none; }
+
         /* Fixed Header Section */
         .header-container { background: #f0f2f5; position: sticky; top: 0; z-index: 100; padding-bottom: 10px; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
@@ -27,7 +34,6 @@
         /* Job Card Layout */
         .job-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative; }
         .job-card.finished-card { background-color: #e3f2fd !important; }
-
         .card-top { display: flex; align-items: center; justify-content: space-between; }
         .job-info { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
         
@@ -42,11 +48,7 @@
         .title-row { display: flex; align-items: center; gap: 6px; width: 100%; flex-wrap: wrap; }
         .job-title-input { font-size: 16px; font-weight: bold; color: #333; border: none; outline: none; background: transparent; flex: 1; min-width: 100px; padding: 2px 0; }
         .job-title-input.finished-title { color: #0d47a1 !important; }
-        
-        /* Finished Badge */
         .finished-badge { background-color: #2481cc; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; flex-shrink: 0; display: inline-block; }
-        
-        /* Manual Date Input */
         .job-date-input-manual { font-size: 12px; color: #666; border: none; outline: none; background: transparent; width: 120px; padding: 2px 0; margin-top: 2px; }
 
         /* Finished Button */
@@ -57,44 +59,62 @@
         /* Card Action Footer */
         .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 5px; position: relative; }
         .more-details-btn { color: #888; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 4px; user-select: none; margin: 0 auto; }
-        
-        /* Delete Button */
         .delete-btn { background: none; border: none; color: #e53935; cursor: pointer; font-size: 16px; padding: 5px; position: absolute; right: 0; top: 0; display: flex; align-items: center; justify-content: center; opacity: 0.7; }
         
         /* Workflow Table */
         .workflow-details { display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
         .workflow-details.active { display: block; }
         
-        /* Workflow Rows */
-        .workflow-row { display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid #f2f2f2; gap: 10px; }
-        .row-controls { display: flex; align-items: center; gap: 8px; width: 20%; min-width: 60px; }
-        
-        /* Bulb Style */
+        /* Workflow Rows & Staff Dropdown UI */
+        .workflow-row { display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid #f2f2f2; gap: 6px; flex-wrap: wrap; }
+        .row-controls { display: flex; align-items: center; gap: 6px; width: 50px; }
         .bulb-btn { cursor: pointer; font-size: 16px; user-select: none; opacity: 0.4; filter: grayscale(100%); }
         .bulb-btn.active-bulb { opacity: 1 !important; filter: none !important; }
-        
-        /* Color Circle Style */
-        .color-dot { width: 14px; height: 14px; border-radius: 50%; cursor: pointer; border: 1px solid #ccc; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .color-dot { width: 14px; height: 14px; border-radius: 50%; cursor: pointer; border: 1px solid #ccc; }
 
-        .step-name { font-size: 14px; color: #555; width: 30%; font-weight: 500; }
-        .step-input { width: 50%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; background: white; color: #333; outline: none; transition: all 0.2s; }
+        .step-name { font-size: 13px; color: #555; width: 100px; font-weight: 500; }
+        .step-input { flex: 1; min-width: 100px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; background: white; color: #333; outline: none; }
+        
+        /* Staff Dropdown styling */
+        .staff-select { padding: 6px 2px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; font-weight: bold; width: 85px; outline: none; background-color: white; }
 
         /* Pagination Controls */
-        .pagination { display: flex; justify-content: center; align-items: center; margin: 20px 0; gap: 8px; }
+        .pagination { display: flex; justify-content: center; align-items: center; margin: 20px 0 80px 0; gap: 8px; }
         .page-btn { padding: 6px 12px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; }
         .page-btn.active { background: #2481cc; color: white; border-color: #2481cc; }
         .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
         /* 🖼️ Image Preview Lightbox Overlay Modal */
         .preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
-        .preview-content { max-width: 100%; max-height: 70vh; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); object-fit: contain; }
+        .preview-content { max-width: 100%; max-height: 70vh; border-radius: 8px; object-fit: contain; }
         .modal-controls { margin-top: 20px; display: flex; gap: 15px; width: 100%; justify-content: center; }
         .modal-btn { padding: 10px 20px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px; }
         .close-modal-btn { background: #e53935; color: white; }
         .change-photo-btn { background: #4caf50; color: white; display: flex; align-items: center; gap: 5px; }
+
+        /* 💬 Chat Floating Button & Widget Box */
+        .chat-badge { position: fixed; bottom: 20px; right: 20px; width: 55px; height: 55px; background: #2481cc; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 999; user-select: none; }
+        .chat-box { display: none; position: fixed; bottom: 85px; right: 20px; width: 320px; height: 400px; background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 999; flex-direction: column; overflow: hidden; border: 1px solid #ddd; }
+        .chat-header { background: #2481cc; color: white; padding: 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .chat-messages { flex: 1; padding: 10px; overflow-y: auto; background: #f9f9f9; font-size: 13px; display: flex; flex-direction: column; gap: 8px; }
+        .msg-item { background: #e1f5fe; padding: 6px 10px; border-radius: 8px; max-width: 85%; align-self: flex-start; word-break: break-word; }
+        .msg-meta { font-size: 10px; color: #777; margin-top: 2px; display: block; text-align: right; }
+        .chat-footer { padding: 8px; border-top: 1px solid #eee; display: flex; gap: 6px; background: white; }
+        .chat-input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 13px; }
+        .chat-send-btn { background: #2481cc; color: white; border: none; padding: 0 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
+
+    <div class="pin-overlay" id="pinOverlay">
+        <div class="pin-box">
+            <h3 style="margin-bottom:5px;">Perfect Print Workflow</h3>
+            <p style="font-size:12px; color:#666;">စနစ်အသုံးပြုရန် PIN ကုဒ်ရိုက်ထည့်ပါ</p>
+            <input type="password" class="pin-input" id="pinField" maxlength="4" placeholder="••••" onkeypress="if(event.key==='Enter') verifyAdminPIN()">
+            <button class="pin-btn" onclick="verifyAdminPIN()">ဝင်ရောက်မည်</button>
+            <div class="pin-error" id="pinErrorTxt">PIN ကုဒ်မှားယွင်းနေပါသည်။</div>
+        </div>
+    </div>
 
     <div class="header-container">
         <div class="header">
@@ -113,7 +133,6 @@
     </div>
 
     <div id="jobListContainer"></div>
-
     <div class="pagination" id="paginationContainer"></div>
 
     <div class="preview-modal" id="imagePreviewModal">
@@ -125,7 +144,23 @@
         <input type="file" id="modalFileInput" accept="image/*" style="display: none;" onchange="handleModalFileChange()">
     </div>
 
+    <div class="chat-badge" onclick="toggleChatBox()">💬</div>
+    <div class="chat-box" id="chatBoxElement">
+        <div class="chat-header">
+            <span>Shop Group Chat</span>
+            <span style="cursor:pointer;" onclick="toggleChatBox()">✕</span>
+        </div>
+        <div class="chat-messages" id="chatMessagesContainer"></div>
+        <div class="chat-footer">
+            <input type="text" class="chat-input" id="chatMsgInputField" placeholder="စာရိုက်ပါ..." onkeypress="if(event.key==='Enter') sendGroupChatMessage()">
+            <button class="chat-send-btn" onclick="sendGroupChatMessage()">ပို့မည်</button>
+        </div>
+    </div>
+
     <script>
+        // 🔒 ADMIN PIN CODE CONFIGURATION (အစ်ကို့စိတ်ကြိုက် ဒီနေရာမှာ ဂဏန်း ၄ လုံး ပြောင်းနိုင်ပါတယ်)
+        const ADMIN_PIN_CODE = "7992"; 
+
         const tg = window.Telegram.WebApp;
         if(tg) { tg.ready(); tg.expand(); }
 
@@ -138,8 +173,21 @@
         let currentFilter = 'all'; 
         let activePreviewJobId = null; 
 
+        // PIN Verify System
+        function verifyAdminPIN() {
+            const entered = document.getElementById('pinField').value;
+            if (entered === ADMIN_PIN_CODE) {
+                document.getElementById('pinOverlay').style.display = 'none';
+                initFirebaseSync();
+                initChatSync();
+            } else {
+                const err = document.getElementById('pinErrorTxt');
+                err.style.display = 'block';
+                document.getElementById('pinField').value = "";
+            }
+        }
+
         function initFirebaseSync() {
-            // Firebase ထဲက ဒေတာများကို ပထမဦးဆုံးဆွဲယူခြင်း
             fetch(`${FIREBASE_URL}/jobs.json`)
             .then(res => res.json())
             .then(data => {
@@ -174,6 +222,14 @@
         function triggerSearch() {
             currentPage = 1;
             renderApp();
+        }
+
+        // ဝန်ထမ်းအလိုက် အရောင်သတ်မှတ်ချက်များ (Pink, Gold, Grey)
+        function getStaffColor(name) {
+            if (name === "Sharhid") return "#ffc0cb"; // Soft Pink
+            if (name === "Ausmaan") return "#ffd700"; // Gold
+            if (name === "Myo Min") return "#d3d3d3"; // Light Grey
+            return "white";
         }
 
         function renderApp() {
@@ -261,19 +317,20 @@
 
         function renderWorkflowRow(job, key, label) {
             if (!job.workflow) job.workflow = {};
-            if (!job.workflow[key]) job.workflow[key] = { text: "", color: "white", bulb: "black" };
+            if (!job.workflow[key]) job.workflow[key] = { text: "", color: "white", bulb: "black", staff: "" };
             
             const item = job.workflow[key];
-            let inputStyle = 'background-color: white; color: #333;';
-            let activeBulbClass = '';
-
-            if (item.bulb === 'red') {
-                inputStyle = 'background-color: #e53935; color: white;';
-                activeBulbClass = 'active-bulb';
-            } else if (item.bulb === 'green') {
-                inputStyle = 'background-color: #4caf50; color: white;';
-                activeBulbClass = 'active-bulb';
+            let activeBulbClass = (item.bulb === 'red' || item.bulb === 'green') ? 'active-bulb' : '';
+            
+            // ဝန်ထမ်းအရောင် သို့မဟုတ် မီးလုံးအရောင် ဦးစားပေးသက်ရောက်ခြင်း
+            let rowBgColor = 'white';
+            let textColor = '#333';
+            
+            if (item.staff && item.staff !== "") {
+                rowBgColor = getStaffColor(item.staff);
             }
+            if (item.bulb === 'red') { rowBgColor = '#e53935'; textColor = 'white'; }
+            else if (item.bulb === 'green') { rowBgColor = '#4caf50'; textColor = 'white'; }
             
             return `
                 <div class="workflow-row" id="row-${job.id}-${key}">
@@ -282,9 +339,95 @@
                         <div class="color-dot" style="background-color: ${item.color || 'white'};" onclick="toggleColorCircle(${job.id}, '${key}', this)"></div>
                     </div>
                     <span class="step-name">${label}</span>
-                    <input type="text" class="step-input" style="${inputStyle}" value="${item.text || ''}" placeholder="—" onchange="updateWorkflowTextLive(${job.id}, '${key}', this.value)">
+                    <input type="text" class="step-input" style="background-color: ${rowBgColor}; color: ${textColor};" value="${item.text || ''}" placeholder="—" onchange="updateWorkflowTextLive(${job.id}, '${key}', this.value)">
+                    
+                    <select class="staff-select" onchange="updateWorkflowStaff(${job.id}, '${key}', this.value)">
+                        <option value="">Assign</option>
+                        <option value="Sharhid" ${item.staff === 'Sharhid' ? 'selected' : ''}>Sharhid</option>
+                        <option value="Ausmaan" ${item.staff === 'Ausmaan' ? 'selected' : ''}>Ausmaan</option>
+                        <option value="Myo Min" ${item.staff === 'Myo Min' ? 'selected' : ''}>Myo Min</option>
+                    </select>
                 </div>
             `;
+        }
+
+        function updateWorkflowStaff(id, key, staffName) {
+            const job = jobsData.find(j => j && j.id === id);
+            if (!job || !job.dbKey) return;
+
+            job.workflow[key].staff = staffName;
+
+            // UI Background ကို ချက်ချင်း live ပြောင်းလဲခြင်း
+            const rowEl = document.getElementById(`row-${id}-${key}`);
+            if(rowEl) {
+                const inputEl = rowEl.querySelector('.step-input');
+                if(job.workflow[key].bulb === 'black' || job.workflow[key].bulb === '') {
+                    inputEl.style.backgroundColor = getStaffColor(staffName);
+                    inputEl.style.color = '#333';
+                }
+            }
+
+            fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ staff: staffName })
+            });
+        }
+
+        function toggleBulbLogic(id, key, btnEl) {
+            const job = jobsData.find(j => j && j.id === id);
+            if (!job || !job.dbKey) return;
+
+            let currentBulb = job.workflow[key].bulb || 'black';
+            let nextBulb = 'black';
+
+            if (currentBulb === 'black' || currentBulb === '') nextBulb = 'red';
+            else if (currentBulb === 'red') nextBulb = 'green';
+            else nextBulb = 'black';
+
+            job.workflow[key].bulb = nextBulb;
+
+            const rowEl = document.getElementById(`row-${id}-${key}`);
+            if(rowEl) {
+                const inputEl = rowEl.querySelector('.step-input');
+                if(nextBulb === 'red') {
+                    btnEl.classList.add('active-bulb');
+                    inputEl.style.backgroundColor = '#e53935';
+                    inputEl.style.color = 'white';
+                } else if(nextBulb === 'green') {
+                    btnEl.classList.add('active-bulb');
+                    inputEl.style.backgroundColor = '#4caf50';
+                    inputEl.style.color = 'white';
+                } else {
+                    btnEl.classList.remove('active-bulb');
+                    inputEl.style.backgroundColor = getStaffColor(job.workflow[key].staff);
+                    inputEl.style.color = '#333';
+                }
+            }
+
+            fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ bulb: nextBulb })
+            });
+        }
+
+        function toggleColorCircle(id, key, dotEl) {
+            const job = jobsData.find(j => j && j.id === id);
+            if (!job || !job.dbKey) return;
+
+            let currentColor = job.workflow[key].color || 'white';
+            let nextColor = 'white';
+
+            if (currentColor === 'white' || currentColor === '') nextColor = '#ff4081'; 
+            else if (currentColor === '#ff4081') nextColor = '#ffd700'; 
+            else nextColor = 'white';
+
+            job.workflow[key].color = nextColor;
+            dotEl.style.backgroundColor = nextColor;
+
+            fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ color: nextColor })
+            });
         }
 
         function handleImageClick(id, thumbEl) {
@@ -303,9 +446,7 @@
             activePreviewJobId = null;
         }
 
-        function triggerModalFileInput() {
-            document.getElementById('modalFileInput').click();
-        }
+        function triggerModalFileInput() { document.getElementById('modalFileInput').click(); }
 
         function handleModalFileChange() {
             const fileInput = document.getElementById('modalFileInput');
@@ -316,9 +457,7 @@
         }
 
         function previewImage(input, jobId) {
-            if (input.files && input.files[0]) {
-                processAndUploadImage(input.files[0], jobId);
-            }
+            if (input.files && input.files[0]) { processAndUploadImage(input.files[0], jobId); }
         }
 
         function processAndUploadImage(file, jobId) {
@@ -331,7 +470,6 @@
                     const scaleSize = MAX_WIDTH / img.width;
                     canvas.width = MAX_WIDTH;
                     canvas.height = img.height * scaleSize;
-                    
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     
@@ -339,8 +477,6 @@
                     const job = jobsData.find(j => j && j.id === jobId);
                     if (job && job.dbKey) {
                         job.image = base64Image;
-                        
-                        // UI ကို ချက်ချင်းပြောင်းလဲခြင်း
                         const cardEl = document.getElementById(`card-${jobId}`);
                         if(cardEl) {
                             const thumbEl = cardEl.querySelector('.job-thumb');
@@ -349,7 +485,6 @@
                                 thumbEl.querySelectorAll('span').forEach(s => s.style.display = 'none');
                             }
                         }
-
                         fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
                             method: 'PATCH',
                             body: JSON.stringify({ image: base64Image })
@@ -361,79 +496,16 @@
             reader.readAsDataURL(file);
         }
 
-        // 🔥 မီးလုံးနှိပ်လိုက်တာနဲ့ စာသားကွက်နောက်ခံပါ အရောင်ချက်ချင်းပြောင်းမည့် နဂိုမူလ Logic အပိုင်း
-        function toggleBulbLogic(id, key, btnEl) {
-            const job = jobsData.find(j => j && j.id === id);
-            if (!job || !job.dbKey) return;
-
-            let currentBulb = job.workflow[key].bulb || 'black';
-            let nextBulb = 'black';
-
-            if (currentBulb === 'black' || currentBulb === '') nextBulb = 'red';
-            else if (currentBulb === 'red') nextBulb = 'green';
-            else nextBulb = 'black';
-
-            job.workflow[key].bulb = nextBulb;
-
-            // UI မျက်နှာပြင်ပေါ်တွင် ချက်ချင်းအရောင်ပြောင်းလဲသတ်မှတ်ခြင်း
-            const rowEl = document.getElementById(`row-${id}-${key}`);
-            if(rowEl) {
-                const inputEl = rowEl.querySelector('.step-input');
-                if(nextBulb === 'red') {
-                    btnEl.classList.add('active-bulb');
-                    inputEl.style.backgroundColor = '#e53935';
-                    inputEl.style.color = 'white';
-                } else if(nextBulb === 'green') {
-                    btnEl.classList.add('active-bulb');
-                    inputEl.style.backgroundColor = '#4caf50';
-                    inputEl.style.color = 'white';
-                } else {
-                    btnEl.classList.remove('active-bulb');
-                    inputEl.style.backgroundColor = 'white';
-                    inputEl.style.color = '#333';
-                }
-            }
-
-            fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
-                method: 'PATCH',
-                body: JSON.stringify({ bulb: nextBulb })
-            });
-        }
-
-        // 🔥 အဝိုင်းလေးကို နှိပ်လိုက်တာနဲ့ ချက်ချင်း အရောင်ပြောင်းလဲခြင်း
-        function toggleColorCircle(id, key, dotEl) {
-            const job = jobsData.find(j => j && j.id === id);
-            if (!job || !job.dbKey) return;
-
-            let currentColor = job.workflow[key].color || 'white';
-            let nextColor = 'white';
-
-            if (currentColor === 'white' || currentColor === '') nextColor = '#ff4081'; 
-            else if (currentColor === '#ff4081') nextColor = '#ffd700'; 
-            else nextColor = 'white';
-
-            job.workflow[key].color = nextColor;
-            dotEl.style.backgroundColor = nextColor; // UI ကို ချက်ချင်းပြောင်းလဲခြင်း
-
-            fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
-                method: 'PATCH',
-                body: JSON.stringify({ color: nextColor })
-            });
-        }
-
         function renderPaginationControls(totalPages) {
             const container = document.getElementById('paginationContainer');
             container.innerHTML = "";
             if (totalPages <= 1) return;
-
             const backDisabled = currentPage === 1 ? 'disabled' : '';
             container.insertAdjacentHTML('beforeend', `<button class="page-btn" ${backDisabled} onclick="changePage(${currentPage - 1})">Back</button>`);
-
             for (let i = 1; i <= totalPages; i++) {
                 const activeClass = currentPage === i ? 'active' : '';
                 container.insertAdjacentHTML('beforeend', `<button class="page-btn ${activeClass}" onclick="changePage(${i})">${i}</button>`);
             }
-
             const nextDisabled = currentPage === totalPages ? 'disabled' : '';
             container.insertAdjacentHTML('beforeend', `<button class="page-btn" ${nextDisabled} onclick="changePage(${currentPage + 1})">Next</button>`);
         }
@@ -450,15 +522,12 @@
             const detailsDiv = card.querySelector('.workflow-details');
             const arrowSpan = btn.querySelector('.arrow');
             const textSpan = btn.querySelector('.text');
-
             if (localExpandedState[id]) {
                 detailsDiv.classList.add('active');
-                arrowSpan.innerText = '▲';
-                textSpan.innerText = 'Less';
+                arrowSpan.innerText = '▲'; textSpan.innerText = 'Less';
             } else {
                 detailsDiv.classList.remove('active');
-                arrowSpan.innerText = '▼';
-                textSpan.innerText = 'More details';
+                arrowSpan.innerText = '▼'; textSpan.innerText = 'More details';
             }
         }
 
@@ -515,7 +584,6 @@
         function addNewJob() {
             const d = new Date();
             const todayStr = `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
-            
             let maxId = 0;
             jobsData.forEach(j => { if (j && j.id > maxId) maxId = j.id; });
             const nextId = maxId + 1;
@@ -527,16 +595,16 @@
                 image: "",
                 isDone: false,
                 workflow: {
-                    paperType: { text: "", color: "white", bulb: "black" }, 
-                    ctp: { text: "", color: "white", bulb: "black" }, 
-                    press: { text: "", color: "white", bulb: "black" }, 
-                    lamination: { text: "", color: "white", bulb: "black" }, 
-                    dieFrame: { text: "", color: "white", bulb: "black" }, 
-                    dieCut: { text: "", color: "white", bulb: "black" }, 
-                    cutting: { text: "", color: "white", bulb: "black" }, 
-                    binding: { text: "", color: "white", bulb: "black" }, 
-                    zinc: { text: "", color: "white", bulb: "black" }, 
-                    goldFoil: { text: "", color: "white", bulb: "black" }
+                    paperType: { text: "", color: "white", bulb: "black", staff: "" }, 
+                    ctp: { text: "", color: "white", bulb: "black", staff: "" }, 
+                    press: { text: "", color: "white", bulb: "black", staff: "" }, 
+                    lamination: { text: "", color: "white", bulb: "black", staff: "" }, 
+                    dieFrame: { text: "", color: "white", bulb: "black", staff: "" }, 
+                    dieCut: { text: "", color: "white", bulb: "black", staff: "" }, 
+                    cutting: { text: "", color: "white", bulb: "black", staff: "" }, 
+                    binding: { text: "", color: "white", bulb: "black", staff: "" }, 
+                    zinc: { text: "", color: "white", bulb: "black", staff: "" }, 
+                    goldFoil: { text: "", color: "white", bulb: "black", staff: "" }
                 }
             };
             
@@ -553,7 +621,6 @@
         function deleteJob(id) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job) return;
-
             if (confirm(`ဒီအော်ဒါစာရင်း #${job.id} ကို ဖြတ်ပစ်ရန် သေချာပါသလား?`)) {
                 fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
                     method: 'DELETE'
@@ -564,7 +631,64 @@
             }
         }
 
-        initFirebaseSync();
+        // 💬 GROUP CHAT LOGIC SYSTEM
+        function toggleChatBox() {
+            const chatBox = document.getElementById('chatBoxElement');
+            if (chatBox.style.display === 'flex') {
+                chatBox.style.display = 'none';
+            } else {
+                chatBox.style.display = 'flex';
+                initChatSync(); 
+            }
+        }
+
+        function initChatSync() {
+            fetch(`${FIREBASE_URL}/chat.json`)
+            .then(res => res.json())
+            .then(data => {
+                renderChatMessages(data);
+            });
+        }
+
+        function renderChatMessages(chatData) {
+            const container = document.getElementById('chatMessagesContainer');
+            container.innerHTML = "";
+            if (!chatData) return;
+
+            Object.keys(chatData).forEach(key => {
+                const msg = chatData[key];
+                const itemHTML = `
+                    <div class="msg-item">
+                        <div>${msg.text}</div>
+                        <span class="msg-meta">${msg.time}</span>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', itemHTML);
+            });
+            container.scrollTop = container.scrollHeight; 
+        }
+
+        function sendGroupChatMessage() {
+            const inputField = document.getElementById('chatMsgInputField');
+            const textValue = inputField.value.trim();
+            if (textValue === "") return;
+
+            const d = new Date();
+            const timeStr = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+
+            const newMsg = {
+                text: textValue,
+                time: timeStr
+            };
+
+            fetch(`${FIREBASE_URL}/chat.json`, {
+                method: 'POST',
+                body: JSON.stringify(newMsg)
+            }).then(() => {
+                inputField.value = "";
+                initChatSync(); 
+            });
+        }
     </script>
 </body>
 </html>
