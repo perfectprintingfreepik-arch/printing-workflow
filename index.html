@@ -156,14 +156,23 @@
                     renderApp();
                 } 
                 else if (stream.path && stream.path !== "/") {
-                    const pathParts = stream.path.split('/'); 
-                    const dbKey = pathParts[1]; 
+                    // 🔥 အဆင့်မြှင့်တင်ထားသော Firebase Path Parser စနစ်
+                    const pathParts = stream.path.split('/').filter(p => p !== ""); 
+                    
+                    // အကယ်၍ path က "/jobs/36/workflow" ဟုလာလျှင်ဖြစ်စေ သို့မဟုတ် "/36/workflow" ဟုလာလျှင်ဖြစ်စေ မှန်အောင်ဖမ်းခြင်း
+                    let dbKey = pathParts[0];
+                    let remainingPaths = pathParts.slice(1);
+                    
+                    if (dbKey === "jobs") {
+                        dbKey = pathParts[1];
+                        remainingPaths = pathParts.slice(2);
+                    }
                     
                     let jobIndex = jobsData.findIndex(j => j && j.dbKey == dbKey);
                     
                     if (jobIndex !== -1) {
-                        updateLocalDataByPath(jobIndex, pathParts.slice(2), stream.data);
-                        updateDOMDirectly(jobsData[jobIndex].id, pathParts.slice(2), stream.data);
+                        updateLocalDataByPath(jobIndex, remainingPaths, stream.data);
+                        updateDOMDirectly(jobsData[jobIndex].id, remainingPaths, stream.data);
                     } else {
                         fetch(`${FIREBASE_URL}/jobs.json`)
                         .then(res => res.json())
@@ -202,11 +211,11 @@
             }
         }
 
-        // 🔥 အဓိကပြင်ဆင်လိုက်သော ချက်ချင်း Live အရောင်ပြောင်းစေမည့် စနစ်သစ် Logic
+        // 🔥 အချိန်နဲ့တပြေးညီ ပုံရိပ်နှင့် အရောင်များကို ပြောင်းလဲစေမည့် နှလုံးသားကုဒ်စနစ်
         function updateDOMDirectly(jobId, paths, value) {
             const cardEl = document.getElementById(`card-${jobId}`);
             
-            // ၁။ ပုံပြောင်းလဲမှုရှိပါက Live ချက်ချင်းပြောင်းပေးရန်
+            // ၁။ ပုံပြောင်းလဲမှုများအတွက် ချက်ချင်း Live ဖော်ပြပေးရန်
             if (paths.length === 1 && paths[0] === 'image') {
                 if(cardEl) {
                     const thumbEl = cardEl.querySelector('.job-thumb');
@@ -229,7 +238,7 @@
 
             if (!cardEl) return;
 
-            // ၂။ စာသားရိုက်ချက်ချင်းပြောင်းလဲမှုဖြစ်စေရန်စစ်ဆေးခြင်း
+            // ၂။ မီးလုံးနှင့် အဝိုင်းအရောင် ပြောင်းလဲမှုများကို Path ၂ မျိုးလုံးမှ ဖမ်းယူပြင်ဆင်ခြင်း
             let isWorkflowChange = false;
             let key = "";
 
@@ -237,7 +246,6 @@
                 key = paths[1];
                 isWorkflowChange = true;
             } else if (paths.length === 2 && paths[0] === 'workflow') {
-                // 🔥 ပုဒ်မခွဲ (၂) အရ Firebase က Object တစ်ခုလုံး စုပြီး လှမ်းပို့လာပါက ဒီနေရာကနေ ဖမ်းပါမည်။
                 key = paths[1];
                 isWorkflowChange = true;
             }
@@ -251,15 +259,12 @@
                 if (job && job.workflow && job.workflow[key]) {
                     const item = job.workflow[key];
                     
-                    // သက်ဆိုင်ရာ စာရိုက်ကွက် စာသားများကိုလည်း Live ထည့်ပေးခြင်း
                     if (inputEl && document.activeElement !== inputEl) {
                         inputEl.value = item.text || "";
                     }
                     
-                    // အရောင်အဝိုင်းလေး သတ်မှတ်ခြင်း
                     if(dotEl) dotEl.style.backgroundColor = item.color || 'white';
 
-                    // မီးလုံးနှိပ်မှုကြောင့် စာရိုက်ကွက် (Input) ကို ချက်ချင်း မျက်စိရှေ့တင် Live အရောင်ပြောင်းပေးခြင်း
                     if (inputEl) {
                         if (item.bulb === 'red') {
                             inputEl.style.backgroundColor = '#e53935'; 
