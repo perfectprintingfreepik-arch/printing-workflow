@@ -20,8 +20,8 @@
         .search-bar { width: 100%; max-width: 400px; padding: 10px 15px; border: 1px solid #ccc; border-radius: 20px; font-size: 14px; outline: none; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
 
         /* Filter Tabs Line */
-        .filter-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 12px; }
-        .tab-btn { flex: 1; max-width: 150px; padding: 8px 0; border: 2px solid #2481cc; background: white; color: #2481cc; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 13px; text-align: center; transition: all 0.2s; }
+        .filter-tabs { display: flex; justify-content: center; gap: 6px; margin-bottom: 12px; }
+        .tab-btn { flex: 1; max-width: 110px; padding: 8px 0; border: 2px solid #2481cc; background: white; color: #2481cc; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 13px; text-align: center; transition: all 0.2s; }
         .tab-btn.active { background: #2481cc; color: white; }
 
         /* Job Card Layout */
@@ -31,7 +31,7 @@
         .card-top { display: flex; align-items: center; justify-content: space-between; }
         .job-info { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
         
-        /* Image Upload */
+        /* Image Upload & Thumbnail */
         .image-upload-container { position: relative; width: 50px; height: 50px; flex-shrink: 0; }
         .file-input { display: none; }
         .job-thumb { width: 50px; height: 50px; background: #f8f9fa; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #aaa; text-align: center; border: 2px dashed #ccc; cursor: pointer; overflow: hidden; background-size: cover; background-position: center; background-repeat: no-repeat; }
@@ -84,6 +84,14 @@
         .page-btn { padding: 6px 12px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; }
         .page-btn.active { background: #2481cc; color: white; border-color: #2481cc; }
         .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* 🖼️ Image Preview Lightbox Overlay Modal */
+        .preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
+        .preview-content { max-width: 100%; max-height: 70vh; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); object-fit: contain; }
+        .modal-controls { margin-top: 20px; display: flex; gap: 15px; width: 100%; justify-content: center; }
+        .modal-btn { padding: 10px 20px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .close-modal-btn { background: #e53935; color: white; }
+        .change-photo-btn { background: #4caf50; color: white; display: flex; align-items: center; gap: 5px; }
     </style>
 </head>
 <body>
@@ -98,7 +106,8 @@
         </div>
         
         <div class="filter-tabs">
-            <button class="tab-btn active" id="tab-unfinished" onclick="switchFilterTab('unfinished')">Unfinished</button>
+            <button class="tab-btn active" id="tab-all" onclick="switchFilterTab('all')">All</button>
+            <button class="tab-btn" id="tab-unfinished" onclick="switchFilterTab('unfinished')">Unfinished</button>
             <button class="tab-btn" id="tab-finished" onclick="switchFilterTab('finished')">Finished</button>
         </div>
     </div>
@@ -106,6 +115,15 @@
     <div id="jobListContainer"></div>
 
     <div class="pagination" id="paginationContainer"></div>
+
+    <div class="preview-modal" id="imagePreviewModal">
+        <img src="" class="preview-content" id="modalPreviewImg" alt="Preview">
+        <div class="modal-controls">
+            <button class="modal-btn change-photo-btn" onclick="triggerModalFileInput()">➕ Change Photo</button>
+            <button class="modal-btn close-modal-btn" onclick="closeImagePreview()">❌ Close</button>
+        </div>
+        <input type="file" id="modalFileInput" accept="image/*" style="display: none;" onchange="handleModalFileChange()">
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -117,7 +135,8 @@
         let currentPage = 1;
         const itemsPerPage = 10;
         let localExpandedState = {}; 
-        let currentFilter = 'unfinished';
+        let currentFilter = 'all'; // Default အဖြစ် All ကိုပြပါမည်။
+        let activePreviewJobId = null; 
 
         function initFirebaseSync() {
             fetch(`${FIREBASE_URL}/jobs.json`)
@@ -185,6 +204,31 @@
 
         function updateDOMDirectly(jobId, paths, value) {
             const cardEl = document.getElementById(`card-${jobId}`);
+            
+            // ၁။ ပုံပြောင်းလဲမှုရှိပါက Live ချက်ချင်းပြောင်းပေးရန် (Thumbnail ရော Preview မော်ဒယ်ပါ)
+            if (paths.length === 1 && paths[0] === 'image') {
+                if(cardEl) {
+                    const thumbEl = cardEl.querySelector('.job-thumb');
+                    if(thumbEl) {
+                        if(value) {
+                            thumbEl.style.backgroundImage = `url(${value})`;
+                            thumbEl.querySelectorAll('span').forEach(s => s.style.display = 'none');
+                        } else {
+                            thumbEl.style.backgroundImage = 'none';
+                            thumbEl.querySelectorAll('span').forEach(s => s.style.display = 'block');
+                        }
+                    }
+                }
+                if (activePreviewJobId === jobId && document.getElementById('imagePreviewModal').style.display === 'flex') {
+                    if(value) {
+                        document.getElementById('modalPreviewImg').src = value;
+                    } else {
+                        closeImagePreview();
+                    }
+                }
+                return;
+            }
+
             if (!cardEl) return;
 
             if (paths.length === 3 && paths[0] === 'workflow' && paths[2] === 'text') {
@@ -195,7 +239,7 @@
                 }
             }
             
-            // 💡 မီးလုံး သို့မဟုတ် ဝိုင်းလေးနှိပ်ခြင်း အရောင်ပြောင်းလဲမှုများ Live လိုက်ပြောင်းပေးခြင်း
+            // Real-time တိုက်ရိုက် UI ပေါ်ချက်ချင်းပေါ်စေမည့် မီးလုံးနှင့် စာရိုက်ကွက် Logic
             if (paths.length === 3 && paths[0] === 'workflow' && (paths[2] === 'bulb' || paths[2] === 'color')) {
                 const key = paths[1];
                 const bulbEl = cardEl.querySelector(`.bulb-btn[data-key="${key}"]`);
@@ -206,10 +250,8 @@
                 if (job && job.workflow && job.workflow[key]) {
                     const item = job.workflow[key];
                     
-                    // ၁။ အရောင်အဝိုင်းလေးအတွက် Background သတ်မှတ်ခြင်း
                     if(dotEl) dotEl.style.backgroundColor = item.color || 'white';
 
-                    // ၂။ မီးလုံးနှင့် စာရိုက်အကွက် (Input) အတွက် အရောင်သတ်မှတ်ခြင်း
                     if (inputEl) {
                         if (item.bulb === 'red') {
                             inputEl.style.backgroundColor = '#e53935'; 
@@ -235,6 +277,7 @@
 
         function switchFilterTab(type) {
             currentFilter = type;
+            document.getElementById('tab-all').classList.toggle('active', type === 'all');
             document.getElementById('tab-unfinished').classList.toggle('active', type === 'unfinished');
             document.getElementById('tab-finished').classList.toggle('active', type === 'finished');
             currentPage = 1;
@@ -251,7 +294,12 @@
             
             const filteredJobs = jobsData.filter(job => {
                 if (!job) return false;
-                const matchTab = (currentFilter === 'finished') ? job.isDone === true : !job.isDone;
+                
+                // All, Unfinished, Finished Tab စစ်ထုတ်ချက် Logic
+                let matchTab = true;
+                if (currentFilter === 'finished') matchTab = job.isDone === true;
+                else if (currentFilter === 'unfinished') matchTab = !job.isDone;
+                
                 const matchSearch = (job.title && job.title.toLowerCase().includes(searchInput)) || 
                                     (job.date && job.date.toLowerCase().includes(searchInput));
                 return matchTab && matchSearch;
@@ -283,7 +331,7 @@
                             <div class="job-info">
                                 <div class="image-upload-container">
                                     <input type="file" accept="image/*" class="file-input" onchange="previewImage(this, ${job.id})">
-                                    <div class="job-thumb" onclick="triggerFileInput(this)" style="background-image: ${job.image ? `url(${job.image})` : 'none'}">
+                                    <div class="job-thumb" onclick="handleImageClick(${job.id}, this)" style="background-image: ${job.image ? `url(${job.image})` : 'none'}">
                                         <span class="plus-icon" style="display: ${job.image ? 'none' : 'block'}">+</span>
                                         <span style="display: ${job.image ? 'none' : 'block'}">Image</span>
                                     </div>
@@ -331,11 +379,9 @@
             if (!job.workflow[key]) job.workflow[key] = { text: "", color: "white", bulb: "black" };
             
             const item = job.workflow[key];
-            
             let inputStyle = 'background-color: white; color: #333;';
             let activeBulbClass = '';
 
-            // မီးလုံးနှိပ်ထားမှုအပေါ်မူတည်ပြီး စာရိုက်ကွက် (Input) ကိုပဲ အရောင်ပြောင်းစေခြင်း
             if (item.bulb === 'red') {
                 inputStyle = 'background-color: #e53935; color: white;';
                 activeBulbClass = 'active-bulb';
@@ -344,13 +390,11 @@
                 activeBulbClass = 'active-bulb';
             }
             
-            const currentDotColor = item.color || 'white';
-            
             return `
                 <div class="workflow-row" data-key="${key}">
                     <div class="row-controls">
                         <span class="bulb-btn ${activeBulbClass}" data-key="${key}" onclick="toggleBulbLogic(${job.id}, '${key}')">💡</span>
-                        <div class="color-dot" data-key="${key}" style="background-color: ${currentDotColor};" onclick="toggleColorCircle(${job.id}, '${key}')"></div>
+                        <div class="color-dot" data-key="${key}" style="background-color: ${item.color || 'white'};" onclick="toggleColorCircle(${job.id}, '${key}')"></div>
                     </div>
                     <span class="step-name" data-key="${key}">${label}</span>
                     <input type="text" class="step-input" data-key="${key}" style="${inputStyle}" value="${item.text || ''}" placeholder="—" oninput="updateWorkflowTextLive(${job.id}, '${key}', this.value)">
@@ -358,7 +402,72 @@
             `;
         }
 
-        // 💡 မီးလုံးနှိပ်ခြင်း Logic (၁ချက်နှိပ် Input နီ၊ ၂ချက်နှိပ် Input စိမ်း၊ ၃ချက်နှိပ် ပုံမှန်)
+        // 🖼️ ပုံနှိပ်ခြင်းလုပ်ဆောင်ချက် ပေါင်းစပ် Logic (မရှိသေးလျှင်တင်မည်၊ ရှိပြီးသားဆိုလျှင် Preview ပြမည်)
+        function handleImageClick(id, thumbEl) {
+            const job = jobsData.find(j => j && j.id === id);
+            if (job && job.image) {
+                activePreviewJobId = id;
+                document.getElementById('modalPreviewImg').src = job.image;
+                document.getElementById('imagePreviewModal').style.display = 'flex';
+            } else {
+                thumbEl.closest('.image-upload-container').querySelector('.file-input').click();
+            }
+        }
+
+        function closeImagePreview() {
+            document.getElementById('imagePreviewModal').style.display = 'none';
+            activePreviewJobId = null;
+        }
+
+        function triggerModalFileInput() {
+            document.getElementById('modalFileInput').click();
+        }
+
+        function handleModalFileChange() {
+            const fileInput = document.getElementById('modalFileInput');
+            if (fileInput.files && fileInput.files[0] && activePreviewJobId) {
+                processAndUploadImage(fileInput.files[0], activePreviewJobId);
+                fileInput.value = ""; // Clear file input
+            }
+        }
+
+        function previewImage(input, jobId) {
+            if (input.files && input.files[0]) {
+                processAndUploadImage(input.files[0], jobId);
+            }
+        }
+
+        // ပုံဆိုဒ်ချုံ့ပြီး Firebase သို့တိုက်ရိုက် အစားထိုး သိမ်းဆည်းသည့်စနစ်
+        function processAndUploadImage(file, jobId) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 120; 
+                    const scaleSize = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scaleSize;
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    const base64Image = canvas.toDataURL('image/jpeg', 0.6);
+                    const job = jobsData.find(j => j && j.id === jobId);
+                    if (job && job.dbKey) {
+                        job.image = base64Image;
+                        fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
+                            method: 'PATCH',
+                            body: JSON.stringify({ image: base64Image })
+                        });
+                    }
+                };
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
+        // 💡 မီးလုံးနှိပ်ခြင်း Logic
         function toggleBulbLogic(id, key) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job || !job.dbKey) return;
@@ -366,23 +475,18 @@
             let currentBulb = job.workflow[key].bulb || 'black';
             let nextBulb = 'black';
 
-            if (currentBulb === 'black' || currentBulb === '') {
-                nextBulb = 'red';
-            } else if (currentBulb === 'red') {
-                nextBulb = 'green';
-            } else {
-                nextBulb = 'black';
-            }
+            if (currentBulb === 'black' || currentBulb === '') nextBulb = 'red';
+            else if (currentBulb === 'red') nextBulb = 'green';
+            else nextBulb = 'black';
 
             job.workflow[key].bulb = nextBulb;
-
             fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
                 method: 'PATCH',
                 body: JSON.stringify({ bulb: nextBulb })
             });
         }
 
-        // 🔴 ဝိုင်းလေးနှိပ်ခြင်း Logic (Pink -> Gold -> White)
+        // 🔴 ဝိုင်းလေးနှိပ်ခြင်း Logic
         function toggleColorCircle(id, key) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job || !job.dbKey) return;
@@ -390,16 +494,11 @@
             let currentColor = job.workflow[key].color || 'white';
             let nextColor = 'white';
 
-            if (currentColor === 'white' || currentColor === '') {
-                nextColor = '#ff4081'; // Pink
-            } else if (currentColor === '#ff4081') {
-                nextColor = '#ffd700'; // Gold
-            } else {
-                nextColor = 'white';
-            }
+            if (currentColor === 'white' || currentColor === '') nextColor = '#ff4081'; 
+            else if (currentColor === '#ff4081') nextColor = '#ffd700'; 
+            else nextColor = 'white';
 
             job.workflow[key].color = nextColor;
-
             fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
                 method: 'PATCH',
                 body: JSON.stringify({ color: nextColor })
@@ -540,42 +639,6 @@
                     jobsData = jobsData.filter(j => j && j.id !== id);
                     renderApp();
                 });
-            }
-        }
-
-        function triggerFileInput(thumb) {
-            thumb.closest('.image-upload-container').querySelector('.file-input').click();
-        }
-
-        function previewImage(input, jobId) {
-            const file = input.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 120; 
-                        const scaleSize = MAX_WIDTH / img.width;
-                        canvas.width = MAX_WIDTH;
-                        canvas.height = img.height * scaleSize;
-                        
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        
-                        const base64Image = canvas.toDataURL('image/jpeg', 0.6);
-                        const job = jobsData.find(j => j && j.id === jobId);
-                        if (job && job.dbKey) {
-                            job.image = base64Image;
-                            fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
-                                method: 'PATCH',
-                                body: JSON.stringify({ image: base64Image })
-                            }).then(() => renderApp());
-                        }
-                    };
-                    img.src = e.target.result;
-                }
-                reader.readAsDataURL(file);
             }
         }
 
