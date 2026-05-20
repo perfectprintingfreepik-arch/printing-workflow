@@ -139,56 +139,13 @@
         let activePreviewJobId = null; 
 
         function initFirebaseSync() {
+            // Firebase ထဲက ဒေတာများကို ပထမဦးဆုံးဆွဲယူခြင်း
             fetch(`${FIREBASE_URL}/jobs.json`)
             .then(res => res.json())
             .then(data => {
                 handleFirebaseData(data);
                 renderApp();
             });
-
-            // Firebase Stream စောင့်ကြည့်ခြင်းစနစ်
-            const eventSource = new EventSource(`${FIREBASE_URL}/jobs.json`);
-            eventSource.onmessage = function(event) {
-                const stream = JSON.parse(event.data);
-                if (!stream) return;
-
-                if (stream.path === "/") {
-                    handleFirebaseData(stream.data);
-                    renderApp();
-                } 
-                else if (stream.path && stream.path !== "/") {
-                    // 🔥 လုံးဝ (လုံးဝ) လမ်းကြောင်း မမှားစေမည့် Dynamic Path Parser စနစ်သစ်
-                    const pathParts = stream.path.split('/').filter(p => p !== ""); 
-                    
-                    let dbKey = "";
-                    let remainingPaths = [];
-
-                    // အကယ်၍ ရှေ့ဆုံးမှာ 'jobs' ပါလာခဲ့ရင် ဖယ်ထုတ်ပစ်ပါမယ်။
-                    if (pathParts[0] === "jobs") {
-                        dbKey = pathParts[1];
-                        remainingPaths = pathParts.slice(2);
-                    } else {
-                        dbKey = pathParts[0];
-                        remainingPaths = pathParts.slice(1);
-                    }
-                    
-                    // ဒေတာဘေ့စ်ရဲ့ Key ကို သေချာပေါက် ကွက်တိလိုက်ရှာခြင်း
-                    let jobIndex = jobsData.findIndex(j => j && j.dbKey == dbKey);
-                    
-                    if (jobIndex !== -1) {
-                        updateLocalDataByPath(jobIndex, remainingPaths, stream.data);
-                        updateDOMDirectly(jobsData[jobIndex].id, remainingPaths, stream.data);
-                    } else {
-                        // ဒေတာအသစ် သို့မဟုတ် ရှာမတွေ့ပါက တစ်ချက်ပြန်ဆွဲခြင်း
-                        fetch(`${FIREBASE_URL}/jobs.json`)
-                        .then(res => res.json())
-                        .then(data => {
-                            handleFirebaseData(data);
-                            renderApp();
-                        });
-                    }
-                }
-            };
         }
 
         function handleFirebaseData(rawJobs) {
@@ -203,96 +160,6 @@
                 }
             });
             jobsData = arr;
-        }
-
-        function updateLocalDataByPath(index, paths, value) {
-            if (!jobsData[index]) return;
-            let current = jobsData[index];
-            for (let i = 0; i < paths.length - 1; i++) {
-                if (!current[paths[i]]) current[paths[i]] = {};
-                current = current[paths[i]];
-            }
-            if (paths.length > 0) {
-                current[paths[paths.length - 1]] = value;
-            }
-        }
-
-        // 🔥 နှိပ်လိုက်တာနဲ့ ၁ စက္ကန့်မှ မဆိုင်းဘဲ ချက်ချင်း Live အရောင်ပြောင်းလဲပေးမည့် စနစ်သစ်အပြည့်
-        function updateDOMDirectly(jobId, paths, value) {
-            const cardEl = document.getElementById(`card-${jobId}`);
-            
-            // ၁။ ပုံတင်လိုက်တာနဲ့ မျက်စိရှေ့တင် Live တန်းပြောင်းပေးခြင်း
-            if (paths.length === 1 && paths[0] === 'image') {
-                if(cardEl) {
-                    const thumbEl = cardEl.querySelector('.job-thumb');
-                    if(thumbEl) {
-                        if(value) {
-                            thumbEl.style.backgroundImage = `url(${value})`;
-                            thumbEl.querySelectorAll('span').forEach(s => s.style.display = 'none');
-                        } else {
-                            thumbEl.style.backgroundImage = 'none';
-                            thumbEl.querySelectorAll('span').forEach(s => s.style.display = 'block');
-                        }
-                    }
-                }
-                if (activePreviewJobId === jobId && document.getElementById('imagePreviewModal').style.display === 'flex') {
-                    if(value) document.getElementById('modalPreviewImg').src = value;
-                    else closeImagePreview();
-                }
-                return;
-            }
-
-            if (!cardEl) return;
-
-            // ၂။ မီးလုံးနှင့် အဝိုင်းများကို ဒေတာဘေ့စ်က Object ပုံစံနဲ့ ပို့လာရင်လည်း အလုပ်လုပ်အောင် စစ်ဆေးခြင်း
-            let isWorkflowChange = false;
-            let key = "";
-
-            if (paths.length >= 1 && paths[0] === 'workflow') {
-                key = paths[1];
-                isWorkflowChange = true;
-            }
-
-            if (isWorkflowChange && key) {
-                const bulbEl = cardEl.querySelector(`.bulb-btn[data-key="${key}"]`);
-                const dotEl = cardEl.querySelector(`.color-dot[data-key="${key}"]`);
-                const inputEl = cardEl.querySelector(`.step-input[data-key="${key}"]`);
-
-                const job = jobsData.find(j => j && j.id === jobId);
-                if (job && job.workflow && job.workflow[key]) {
-                    const item = job.workflow[key];
-                    
-                    // စာသားကွက် ချက်ချင်းပြောင်းရန်
-                    if (inputEl && document.activeElement !== inputEl) {
-                        inputEl.value = item.text || "";
-                    }
-                    
-                    // အရောင်ဝိုင်း ချက်ချင်းပြောင်းရန်
-                    if(dotEl) dotEl.style.backgroundColor = item.color || 'white';
-
-                    // စာရိုက်ကွက်နောက်ခံ (Input Background) ကို ချက်ချင်း မီးလုံးအရောင်အတိုင်းပြောင်းရန်
-                    if (inputEl) {
-                        if (item.bulb === 'red') {
-                            inputEl.style.backgroundColor = '#e53935'; 
-                            inputEl.style.color = 'white';
-                            if(bulbEl) bulbEl.classList.add('active-bulb');
-                        } else if (item.bulb === 'green') {
-                            inputEl.style.backgroundColor = '#4caf50'; 
-                            inputEl.style.color = 'white';
-                            if(bulbEl) bulbEl.classList.add('active-bulb');
-                        } else {
-                            inputEl.style.backgroundColor = 'white'; 
-                            inputEl.style.color = '#333';
-                            if(bulbEl) bulbEl.classList.remove('active-bulb');
-                        }
-                    }
-                }
-            }
-
-            // ၃။ Finished Card Status ပြောင်းလဲမှု
-            if (paths.length === 1 && paths[0] === 'isDone') {
-                setTimeout(() => { renderApp(); }, 300);
-            }
         }
 
         function switchFilterTab(type) {
@@ -409,13 +276,13 @@
             }
             
             return `
-                <div class="workflow-row" data-key="${key}">
+                <div class="workflow-row" id="row-${job.id}-${key}">
                     <div class="row-controls">
-                        <span class="bulb-btn ${activeBulbClass}" data-key="${key}" onclick="toggleBulbLogic(${job.id}, '${key}')">💡</span>
-                        <div class="color-dot" data-key="${key}" style="background-color: ${item.color || 'white'};" onclick="toggleColorCircle(${job.id}, '${key}')"></div>
+                        <span class="bulb-btn ${activeBulbClass}" onclick="toggleBulbLogic(${job.id}, '${key}', this)">💡</span>
+                        <div class="color-dot" style="background-color: ${item.color || 'white'};" onclick="toggleColorCircle(${job.id}, '${key}', this)"></div>
                     </div>
-                    <span class="step-name" data-key="${key}">${label}</span>
-                    <input type="text" class="step-input" data-key="${key}" style="${inputStyle}" value="${item.text || ''}" placeholder="—" oninput="updateWorkflowTextLive(${job.id}, '${key}', this.value)">
+                    <span class="step-name">${label}</span>
+                    <input type="text" class="step-input" style="${inputStyle}" value="${item.text || ''}" placeholder="—" onchange="updateWorkflowTextLive(${job.id}, '${key}', this.value)">
                 </div>
             `;
         }
@@ -472,6 +339,17 @@
                     const job = jobsData.find(j => j && j.id === jobId);
                     if (job && job.dbKey) {
                         job.image = base64Image;
+                        
+                        // UI ကို ချက်ချင်းပြောင်းလဲခြင်း
+                        const cardEl = document.getElementById(`card-${jobId}`);
+                        if(cardEl) {
+                            const thumbEl = cardEl.querySelector('.job-thumb');
+                            if(thumbEl) {
+                                thumbEl.style.backgroundImage = `url(${base64Image})`;
+                                thumbEl.querySelectorAll('span').forEach(s => s.style.display = 'none');
+                            }
+                        }
+
                         fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
                             method: 'PATCH',
                             body: JSON.stringify({ image: base64Image })
@@ -483,8 +361,8 @@
             reader.readAsDataURL(file);
         }
 
-        // 🔥 မီးလုံး Database ပို့ခြင်းစနစ်
-        function toggleBulbLogic(id, key) {
+        // 🔥 မီးလုံးနှိပ်လိုက်တာနဲ့ စာသားကွက်နောက်ခံပါ အရောင်ချက်ချင်းပြောင်းမည့် နဂိုမူလ Logic အပိုင်း
+        function toggleBulbLogic(id, key, btnEl) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job || !job.dbKey) return;
 
@@ -496,14 +374,34 @@
             else nextBulb = 'black';
 
             job.workflow[key].bulb = nextBulb;
+
+            // UI မျက်နှာပြင်ပေါ်တွင် ချက်ချင်းအရောင်ပြောင်းလဲသတ်မှတ်ခြင်း
+            const rowEl = document.getElementById(`row-${id}-${key}`);
+            if(rowEl) {
+                const inputEl = rowEl.querySelector('.step-input');
+                if(nextBulb === 'red') {
+                    btnEl.classList.add('active-bulb');
+                    inputEl.style.backgroundColor = '#e53935';
+                    inputEl.style.color = 'white';
+                } else if(nextBulb === 'green') {
+                    btnEl.classList.add('active-bulb');
+                    inputEl.style.backgroundColor = '#4caf50';
+                    inputEl.style.color = 'white';
+                } else {
+                    btnEl.classList.remove('active-bulb');
+                    inputEl.style.backgroundColor = 'white';
+                    inputEl.style.color = '#333';
+                }
+            }
+
             fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
                 method: 'PATCH',
                 body: JSON.stringify({ bulb: nextBulb })
             });
         }
 
-        // 🔥 အရောင်ဝိုင်းလေး Database ပို့ခြင်းစနစ်
-        function toggleColorCircle(id, key) {
+        // 🔥 အဝိုင်းလေးကို နှိပ်လိုက်တာနဲ့ ချက်ချင်း အရောင်ပြောင်းလဲခြင်း
+        function toggleColorCircle(id, key, dotEl) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job || !job.dbKey) return;
 
@@ -515,6 +413,8 @@
             else nextColor = 'white';
 
             job.workflow[key].color = nextColor;
+            dotEl.style.backgroundColor = nextColor; // UI ကို ချက်ချင်းပြောင်းလဲခြင်း
+
             fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
                 method: 'PATCH',
                 body: JSON.stringify({ color: nextColor })
@@ -599,6 +499,12 @@
             const job = jobsData.find(j => j && j.id === id);
             if (job && job.dbKey) {
                 job.isDone = !job.isDone;
+                const cardEl = document.getElementById(`card-${id}`);
+                if(cardEl) {
+                    cardEl.classList.toggle('finished-card', job.isDone);
+                    const circle = cardEl.querySelector('.status-circle');
+                    if(circle) circle.classList.toggle('done', job.isDone);
+                }
                 fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
                     method: 'PATCH',
                     body: JSON.stringify({ isDone: job.isDone })
