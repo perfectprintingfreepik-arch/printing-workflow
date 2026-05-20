@@ -146,6 +146,7 @@
                 renderApp();
             });
 
+            // Firebase Stream စောင့်ကြည့်ခြင်းစနစ်
             const eventSource = new EventSource(`${FIREBASE_URL}/jobs.json`);
             eventSource.onmessage = function(event) {
                 const stream = JSON.parse(event.data);
@@ -156,24 +157,29 @@
                     renderApp();
                 } 
                 else if (stream.path && stream.path !== "/") {
-                    // 🔥 အဆင့်မြှင့်တင်ထားသော Firebase Path Parser စနစ်
+                    // 🔥 လုံးဝ (လုံးဝ) လမ်းကြောင်း မမှားစေမည့် Dynamic Path Parser စနစ်သစ်
                     const pathParts = stream.path.split('/').filter(p => p !== ""); 
                     
-                    // အကယ်၍ path က "/jobs/36/workflow" ဟုလာလျှင်ဖြစ်စေ သို့မဟုတ် "/36/workflow" ဟုလာလျှင်ဖြစ်စေ မှန်အောင်ဖမ်းခြင်း
-                    let dbKey = pathParts[0];
-                    let remainingPaths = pathParts.slice(1);
-                    
-                    if (dbKey === "jobs") {
+                    let dbKey = "";
+                    let remainingPaths = [];
+
+                    // အကယ်၍ ရှေ့ဆုံးမှာ 'jobs' ပါလာခဲ့ရင် ဖယ်ထုတ်ပစ်ပါမယ်။
+                    if (pathParts[0] === "jobs") {
                         dbKey = pathParts[1];
                         remainingPaths = pathParts.slice(2);
+                    } else {
+                        dbKey = pathParts[0];
+                        remainingPaths = pathParts.slice(1);
                     }
                     
+                    // ဒေတာဘေ့စ်ရဲ့ Key ကို သေချာပေါက် ကွက်တိလိုက်ရှာခြင်း
                     let jobIndex = jobsData.findIndex(j => j && j.dbKey == dbKey);
                     
                     if (jobIndex !== -1) {
                         updateLocalDataByPath(jobIndex, remainingPaths, stream.data);
                         updateDOMDirectly(jobsData[jobIndex].id, remainingPaths, stream.data);
                     } else {
+                        // ဒေတာအသစ် သို့မဟုတ် ရှာမတွေ့ပါက တစ်ချက်ပြန်ဆွဲခြင်း
                         fetch(`${FIREBASE_URL}/jobs.json`)
                         .then(res => res.json())
                         .then(data => {
@@ -211,11 +217,11 @@
             }
         }
 
-        // 🔥 အချိန်နဲ့တပြေးညီ ပုံရိပ်နှင့် အရောင်များကို ပြောင်းလဲစေမည့် နှလုံးသားကုဒ်စနစ်
+        // 🔥 နှိပ်လိုက်တာနဲ့ ၁ စက္ကန့်မှ မဆိုင်းဘဲ ချက်ချင်း Live အရောင်ပြောင်းလဲပေးမည့် စနစ်သစ်အပြည့်
         function updateDOMDirectly(jobId, paths, value) {
             const cardEl = document.getElementById(`card-${jobId}`);
             
-            // ၁။ ပုံပြောင်းလဲမှုများအတွက် ချက်ချင်း Live ဖော်ပြပေးရန်
+            // ၁။ ပုံတင်လိုက်တာနဲ့ မျက်စိရှေ့တင် Live တန်းပြောင်းပေးခြင်း
             if (paths.length === 1 && paths[0] === 'image') {
                 if(cardEl) {
                     const thumbEl = cardEl.querySelector('.job-thumb');
@@ -238,19 +244,16 @@
 
             if (!cardEl) return;
 
-            // ၂။ မီးလုံးနှင့် အဝိုင်းအရောင် ပြောင်းလဲမှုများကို Path ၂ မျိုးလုံးမှ ဖမ်းယူပြင်ဆင်ခြင်း
+            // ၂။ မီးလုံးနှင့် အဝိုင်းများကို ဒေတာဘေ့စ်က Object ပုံစံနဲ့ ပို့လာရင်လည်း အလုပ်လုပ်အောင် စစ်ဆေးခြင်း
             let isWorkflowChange = false;
             let key = "";
 
-            if (paths.length === 3 && paths[0] === 'workflow') {
-                key = paths[1];
-                isWorkflowChange = true;
-            } else if (paths.length === 2 && paths[0] === 'workflow') {
+            if (paths.length >= 1 && paths[0] === 'workflow') {
                 key = paths[1];
                 isWorkflowChange = true;
             }
 
-            if (isWorkflowChange) {
+            if (isWorkflowChange && key) {
                 const bulbEl = cardEl.querySelector(`.bulb-btn[data-key="${key}"]`);
                 const dotEl = cardEl.querySelector(`.color-dot[data-key="${key}"]`);
                 const inputEl = cardEl.querySelector(`.step-input[data-key="${key}"]`);
@@ -259,12 +262,15 @@
                 if (job && job.workflow && job.workflow[key]) {
                     const item = job.workflow[key];
                     
+                    // စာသားကွက် ချက်ချင်းပြောင်းရန်
                     if (inputEl && document.activeElement !== inputEl) {
                         inputEl.value = item.text || "";
                     }
                     
+                    // အရောင်ဝိုင်း ချက်ချင်းပြောင်းရန်
                     if(dotEl) dotEl.style.backgroundColor = item.color || 'white';
 
+                    // စာရိုက်ကွက်နောက်ခံ (Input Background) ကို ချက်ချင်း မီးလုံးအရောင်အတိုင်းပြောင်းရန်
                     if (inputEl) {
                         if (item.bulb === 'red') {
                             inputEl.style.backgroundColor = '#e53935'; 
@@ -283,6 +289,7 @@
                 }
             }
 
+            // ၃။ Finished Card Status ပြောင်းလဲမှု
             if (paths.length === 1 && paths[0] === 'isDone') {
                 setTimeout(() => { renderApp(); }, 300);
             }
@@ -476,6 +483,7 @@
             reader.readAsDataURL(file);
         }
 
+        // 🔥 မီးလုံး Database ပို့ခြင်းစနစ်
         function toggleBulbLogic(id, key) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job || !job.dbKey) return;
@@ -494,6 +502,7 @@
             });
         }
 
+        // 🔥 အရောင်ဝိုင်းလေး Database ပို့ခြင်းစနစ်
         function toggleColorCircle(id, key) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job || !job.dbKey) return;
