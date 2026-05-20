@@ -10,7 +10,7 @@
         body { background-color: #f0f2f5; padding: 15px; color: #333; }
         
         /* PIN Lock Overlay Screen */
-        .pin-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:#2481cc; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        .pin-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:#2481cc; z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; }
         .pin-box { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); text-align: center; width: 90%; max-width: 320px; color: #333; }
         .pin-input { width: 100%; padding: 12px; text-align: center; font-size: 22px; letter-spacing: 8px; border: 2px solid #ccc; border-radius: 8px; margin: 15px 0; outline: none; }
         .pin-btn { background: #2481cc; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
@@ -65,43 +65,31 @@
         .workflow-details { display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
         .workflow-details.active { display: block; }
         
-        /* Workflow Rows & Staff Dropdown UI */
-        .workflow-row { display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid #f2f2f2; gap: 6px; flex-wrap: wrap; }
-        .row-controls { display: flex; align-items: center; gap: 6px; width: 50px; }
+        /* Workflow Rows (Optimized for Width) */
+        .workflow-row { display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid #f2f2f2; gap: 6px; }
+        .row-controls { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
         .bulb-btn { cursor: pointer; font-size: 16px; user-select: none; opacity: 0.4; filter: grayscale(100%); }
         .bulb-btn.active-bulb { opacity: 1 !important; filter: none !important; }
-        .color-dot { width: 14px; height: 14px; border-radius: 50%; cursor: pointer; border: 1px solid #ccc; }
-
-        .step-name { font-size: 13px; color: #555; width: 100px; font-weight: 500; }
-        .step-input { flex: 1; min-width: 100px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; background: white; color: #333; outline: none; }
         
-        /* Staff Dropdown styling */
-        .staff-select { padding: 6px 2px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; font-weight: bold; width: 85px; outline: none; background-color: white; }
+        /* Compact Staff Dropdown styling */
+        .staff-select { padding: 4px 2px; border: 1px solid #ccc; border-radius: 4px; font-size: 11px; font-weight: bold; width: 55px; outline: none; background-color: white; flex-shrink: 0; text-align: center; }
+
+        .step-name { font-size: 13px; color: #555; width: 110px; font-weight: 500; padding-left: 2px; flex-shrink: 0; }
+        .step-input { flex: 1; min-width: 80px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; background: white; color: #333; outline: none; }
 
         /* Pagination Controls */
-        .pagination { display: flex; justify-content: center; align-items: center; margin: 20px 0 80px 0; gap: 8px; }
+        .pagination { display: flex; justify-content: center; align-items: center; margin: 20px 0 30px 0; gap: 8px; }
         .page-btn { padding: 6px 12px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; }
         .page-btn.active { background: #2481cc; color: white; border-color: #2481cc; }
         .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        /* 🖼️ Image Preview Lightbox Overlay Modal */
+        /* Image Preview Lightbox Overlay Modal */
         .preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
         .preview-content { max-width: 100%; max-height: 70vh; border-radius: 8px; object-fit: contain; }
         .modal-controls { margin-top: 20px; display: flex; gap: 15px; width: 100%; justify-content: center; }
         .modal-btn { padding: 10px 20px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px; }
         .close-modal-btn { background: #e53935; color: white; }
         .change-photo-btn { background: #4caf50; color: white; display: flex; align-items: center; gap: 5px; }
-
-        /* 💬 Chat Floating Button & Widget Box */
-        .chat-badge { position: fixed; bottom: 20px; right: 20px; width: 55px; height: 55px; background: #2481cc; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 999; user-select: none; }
-        .chat-box { display: none; position: fixed; bottom: 85px; right: 20px; width: 320px; height: 400px; background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 999; flex-direction: column; overflow: hidden; border: 1px solid #ddd; }
-        .chat-header { background: #2481cc; color: white; padding: 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        .chat-messages { flex: 1; padding: 10px; overflow-y: auto; background: #f9f9f9; font-size: 13px; display: flex; flex-direction: column; gap: 8px; }
-        .msg-item { background: #e1f5fe; padding: 6px 10px; border-radius: 8px; max-width: 85%; align-self: flex-start; word-break: break-word; }
-        .msg-meta { font-size: 10px; color: #777; margin-top: 2px; display: block; text-align: right; }
-        .chat-footer { padding: 8px; border-top: 1px solid #eee; display: flex; gap: 6px; background: white; }
-        .chat-input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 13px; }
-        .chat-send-btn { background: #2481cc; color: white; border: none; padding: 0 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -144,22 +132,9 @@
         <input type="file" id="modalFileInput" accept="image/*" style="display: none;" onchange="handleModalFileChange()">
     </div>
 
-    <div class="chat-badge" onclick="toggleChatBox()">💬</div>
-    <div class="chat-box" id="chatBoxElement">
-        <div class="chat-header">
-            <span>Shop Group Chat</span>
-            <span style="cursor:pointer;" onclick="toggleChatBox()">✕</span>
-        </div>
-        <div class="chat-messages" id="chatMessagesContainer"></div>
-        <div class="chat-footer">
-            <input type="text" class="chat-input" id="chatMsgInputField" placeholder="စာရိုက်ပါ..." onkeypress="if(event.key==='Enter') sendGroupChatMessage()">
-            <button class="chat-send-btn" onclick="sendGroupChatMessage()">ပို့မည်</button>
-        </div>
-    </div>
-
     <script>
-        // 🔒 ADMIN PIN CODE CONFIGURATION (အစ်ကို့စိတ်ကြိုက် ဒီနေရာမှာ ဂဏန်း ၄ လုံး ပြောင်းနိုင်ပါတယ်)
-        const ADMIN_PIN_CODE = "7992"; 
+        // 🔒 ADMIN PIN CODE CONFIGURATION (အစ်ကို့စိတ်ကြိုက် ပြောင်းလဲနိုင်သည်)
+        const ADMIN_PIN_CODE = "1234"; 
 
         const tg = window.Telegram.WebApp;
         if(tg) { tg.ready(); tg.expand(); }
@@ -173,13 +148,23 @@
         let currentFilter = 'all'; 
         let activePreviewJobId = null; 
 
-        // PIN Verify System
+        // 🔄 Session-based Security Lock System (Refresh တိုင်း ပြန်မတောင်းစေရန်)
+        function checkSecurityLock() {
+            const isUnlocked = sessionStorage.getItem("appUnlocked");
+            if (isUnlocked === "true") {
+                document.getElementById('pinOverlay').style.display = 'none';
+                initFirebaseSync();
+            } else {
+                document.getElementById('pinOverlay').style.display = 'flex';
+            }
+        }
+
         function verifyAdminPIN() {
             const entered = document.getElementById('pinField').value;
             if (entered === ADMIN_PIN_CODE) {
+                sessionStorage.setItem("appUnlocked", "true"); // Session ထဲတွင် မှတ်သားထားမည်
                 document.getElementById('pinOverlay').style.display = 'none';
                 initFirebaseSync();
-                initChatSync();
             } else {
                 const err = document.getElementById('pinErrorTxt');
                 err.style.display = 'block';
@@ -224,11 +209,11 @@
             renderApp();
         }
 
-        // ဝန်ထမ်းအလိုက် အရောင်သတ်မှတ်ချက်များ (Pink, Gold, Grey)
+        // ဝန်ထမ်းအလိုက် အရောင်ခွဲခြားမှုသတ်မှတ်ချက် (Pink, Yellow, Grey)
         function getStaffColor(name) {
-            if (name === "Sharhid") return "#ffc0cb"; // Soft Pink
-            if (name === "Ausmaan") return "#ffd700"; // Gold
-            if (name === "Myo Min") return "#d3d3d3"; // Light Grey
+            if (name === "Sha") return "#ffc0cb"; // Sharhid -> Soft Pink
+            if (name === "Aus") return "#fff176"; // Ausmaan -> Soft Yellow
+            if (name === "Myo") return "#d3d3d3"; // Myo Min -> Light Grey
             return "white";
         }
 
@@ -322,12 +307,14 @@
             const item = job.workflow[key];
             let activeBulbClass = (item.bulb === 'red' || item.bulb === 'green') ? 'active-bulb' : '';
             
-            // ဝန်ထမ်းအရောင် သို့မဟုတ် မီးလုံးအရောင် ဦးစားပေးသက်ရောက်ခြင်း
+            // ဝန်ထမ်းနောက်ခံအရောင် သို့မဟုတ် မီးလုံးအနီ/အစိမ်း ဦးစားပေးတွက်ချက်မှု
             let rowBgColor = 'white';
             let textColor = '#333';
+            let selectBgColor = 'white';
             
             if (item.staff && item.staff !== "") {
                 rowBgColor = getStaffColor(item.staff);
+                selectBgColor = getStaffColor(item.staff);
             }
             if (item.bulb === 'red') { rowBgColor = '#e53935'; textColor = 'white'; }
             else if (item.bulb === 'green') { rowBgColor = '#4caf50'; textColor = 'white'; }
@@ -336,28 +323,30 @@
                 <div class="workflow-row" id="row-${job.id}-${key}">
                     <div class="row-controls">
                         <span class="bulb-btn ${activeBulbClass}" onclick="toggleBulbLogic(${job.id}, '${key}', this)">💡</span>
-                        <div class="color-dot" style="background-color: ${item.color || 'white'};" onclick="toggleColorCircle(${job.id}, '${key}', this)"></div>
+                        <select class="staff-select" style="background-color: ${selectBgColor};" onchange="updateWorkflowStaff(${job.id}, '${key}', this)">
+                            <option value="">—</option>
+                            <option value="Sha" ${item.staff === 'Sha' ? 'selected' : ''}>Sha</option>
+                            <option value="Aus" ${item.staff === 'Aus' ? 'selected' : ''}>Aus</option>
+                            <option value="Myo" ${item.staff === 'Myo' ? 'selected' : ''}>Myo</option>
+                        </select>
                     </div>
                     <span class="step-name">${label}</span>
                     <input type="text" class="step-input" style="background-color: ${rowBgColor}; color: ${textColor};" value="${item.text || ''}" placeholder="—" onchange="updateWorkflowTextLive(${job.id}, '${key}', this.value)">
-                    
-                    <select class="staff-select" onchange="updateWorkflowStaff(${job.id}, '${key}', this.value)">
-                        <option value="">Assign</option>
-                        <option value="Sharhid" ${item.staff === 'Sharhid' ? 'selected' : ''}>Sharhid</option>
-                        <option value="Ausmaan" ${item.staff === 'Ausmaan' ? 'selected' : ''}>Ausmaan</option>
-                        <option value="Myo Min" ${item.staff === 'Myo Min' ? 'selected' : ''}>Myo Min</option>
-                    </select>
                 </div>
             `;
         }
 
-        function updateWorkflowStaff(id, key, staffName) {
+        function updateWorkflowStaff(id, key, selectEl) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job || !job.dbKey) return;
 
+            const staffName = selectEl.value;
             job.workflow[key].staff = staffName;
 
-            // UI Background ကို ချက်ချင်း live ပြောင်းလဲခြင်း
+            // Select Dropdown Background ပြောင်းလဲခြင်း
+            selectEl.style.backgroundColor = getStaffColor(staffName);
+
+            // စာရိုက်ကွက် (Input) အရောင်ပါ ချက်ချင်း live ပြောင်းလဲခြင်း
             const rowEl = document.getElementById(`row-${id}-${key}`);
             if(rowEl) {
                 const inputEl = rowEl.querySelector('.step-input');
@@ -407,26 +396,6 @@
             fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
                 method: 'PATCH',
                 body: JSON.stringify({ bulb: nextBulb })
-            });
-        }
-
-        function toggleColorCircle(id, key, dotEl) {
-            const job = jobsData.find(j => j && j.id === id);
-            if (!job || !job.dbKey) return;
-
-            let currentColor = job.workflow[key].color || 'white';
-            let nextColor = 'white';
-
-            if (currentColor === 'white' || currentColor === '') nextColor = '#ff4081'; 
-            else if (currentColor === '#ff4081') nextColor = '#ffd700'; 
-            else nextColor = 'white';
-
-            job.workflow[key].color = nextColor;
-            dotEl.style.backgroundColor = nextColor;
-
-            fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
-                method: 'PATCH',
-                body: JSON.stringify({ color: nextColor })
             });
         }
 
@@ -631,64 +600,8 @@
             }
         }
 
-        // 💬 GROUP CHAT LOGIC SYSTEM
-        function toggleChatBox() {
-            const chatBox = document.getElementById('chatBoxElement');
-            if (chatBox.style.display === 'flex') {
-                chatBox.style.display = 'none';
-            } else {
-                chatBox.style.display = 'flex';
-                initChatSync(); 
-            }
-        }
-
-        function initChatSync() {
-            fetch(`${FIREBASE_URL}/chat.json`)
-            .then(res => res.json())
-            .then(data => {
-                renderChatMessages(data);
-            });
-        }
-
-        function renderChatMessages(chatData) {
-            const container = document.getElementById('chatMessagesContainer');
-            container.innerHTML = "";
-            if (!chatData) return;
-
-            Object.keys(chatData).forEach(key => {
-                const msg = chatData[key];
-                const itemHTML = `
-                    <div class="msg-item">
-                        <div>${msg.text}</div>
-                        <span class="msg-meta">${msg.time}</span>
-                    </div>
-                `;
-                container.insertAdjacentHTML('beforeend', itemHTML);
-            });
-            container.scrollTop = container.scrollHeight; 
-        }
-
-        function sendGroupChatMessage() {
-            const inputField = document.getElementById('chatMsgInputField');
-            const textValue = inputField.value.trim();
-            if (textValue === "") return;
-
-            const d = new Date();
-            const timeStr = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
-
-            const newMsg = {
-                text: textValue,
-                time: timeStr
-            };
-
-            fetch(`${FIREBASE_URL}/chat.json`, {
-                method: 'POST',
-                body: JSON.stringify(newMsg)
-            }).then(() => {
-                inputField.value = "";
-                initChatSync(); 
-            });
-        }
+        // စနစ်ကို စတင်စစ်ဆေးခြင်း
+        checkSecurityLock();
     </script>
 </body>
 </html>
