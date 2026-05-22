@@ -9,18 +9,21 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #f0f2f5; padding: 15px; color: #333; }
         
-        /* PIN Lock Overlay Screen */
-        .pin-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:#2481cc; z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        .pin-box { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); text-align: center; width: 90%; max-width: 320px; color: #333; }
-        .pin-input { width: 100%; padding: 12px; text-align: center; font-size: 22px; letter-spacing: 8px; border: 2px solid #ccc; border-radius: 8px; margin: 15px 0; outline: none; }
-        .pin-btn { background: #2481cc; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
-        .pin-error { color: #e53935; font-size: 13px; font-weight: bold; margin-top: 5px; display: none; }
+        /* Login Overlay Screen */
+        .login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:#2481cc; z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        .login-box { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); text-align: center; width: 90%; max-width: 340px; color: #333; }
+        .login-select { width: 100%; padding: 10px; font-size: 16px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; outline: none; font-weight: bold; }
+        .login-input { width: 100%; padding: 12px; text-align: center; font-size: 18px; border: 2px solid #ccc; border-radius: 8px; margin-bottom: 15px; outline: none; }
+        .login-btn { background: #2481cc; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .login-error { color: #e53935; font-size: 13px; font-weight: bold; margin-top: 5px; display: none; }
 
         /* Fixed Header Section */
         .header-container { background: #f0f2f5; position: sticky; top: 0; z-index: 100; padding-bottom: 10px; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .job-count { font-size: 16px; font-weight: bold; color: #666; }
+        .header-right { display: flex; gap: 8px; align-items: center; }
         .add-btn { background-color: #2481cc; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .log-toggle-btn { background-color: #333; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; display: none; }
         
         /* Search Bar */
         .search-wrapper { display: flex; justify-content: center; margin-bottom: 12px; }
@@ -30,6 +33,10 @@
         .filter-tabs { display: flex; justify-content: center; gap: 6px; margin-bottom: 12px; }
         .tab-btn { flex: 1; max-width: 110px; padding: 8px 0; border: 2px solid #2481cc; background: white; color: #2481cc; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 13px; text-align: center; transition: all 0.2s; }
         .tab-btn.active { background: #2481cc; color: white; }
+
+        /* Logs Panel UI */
+        .logs-panel { display: none; background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); max-height: 250px; overflow-y: auto; border: 1px solid #ddd; }
+        .log-item { font-size: 12px; padding: 4px 0; border-bottom: 1px dashed #eee; color: #555; line-height: 1.4; }
 
         /* Job Card Layout */
         .job-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative; }
@@ -65,13 +72,13 @@
         .workflow-details { display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
         .workflow-details.active { display: block; }
         
-        /* Workflow Rows (Optimized for Width) */
+        /* Workflow Rows */
         .workflow-row { display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid #f2f2f2; gap: 6px; }
         .row-controls { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
         .bulb-btn { cursor: pointer; font-size: 16px; user-select: none; opacity: 0.4; filter: grayscale(100%); }
         .bulb-btn.active-bulb { opacity: 1 !important; filter: none !important; }
         
-        /* Compact Staff Dropdown styling */
+        /* Compact Staff Dropdown */
         .staff-select { padding: 4px 2px; border: 1px solid #ccc; border-radius: 4px; font-size: 11px; font-weight: bold; width: 55px; outline: none; background-color: white; flex-shrink: 0; text-align: center; }
 
         .step-name { font-size: 13px; color: #555; width: 110px; font-weight: 500; padding-left: 2px; flex-shrink: 0; }
@@ -94,21 +101,40 @@
 </head>
 <body>
 
-    <div class="pin-overlay" id="pinOverlay">
-        <div class="pin-box">
-            <h3 style="margin-bottom:5px;">Perfect Print Workflow</h3>
-            <p style="font-size:12px; color:#666;">စနစ်အသုံးပြုရန် PIN ကုဒ်ရိုက်ထည့်ပါ</p>
-            <input type="password" class="pin-input" id="pinField" maxlength="4" placeholder="••••" onkeypress="if(event.key==='Enter') verifyAdminPIN()">
-            <button class="pin-btn" onclick="verifyAdminPIN()">ဝင်ရောက်မည်</button>
-            <div class="pin-error" id="pinErrorTxt">PIN ကုဒ်မှားယွင်းနေပါသည်။</div>
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <h3 style="margin-bottom:5px;">Perfect Print Flow</h3>
+            <p style="font-size:12px; color:#666; margin-bottom:15px;">အကောင့်ရွေးချယ်ပြီး Password ရိုက်ထည့်ပါ</p>
+            
+            <select class="login-select" id="userSelectField">
+                <option value="Myo Min">Myo Min (Admin)</option>
+                <option value="Sharhid">Sharhid</option>
+                <option value="Ausmaan">Ausmaan</option>
+            </select>
+
+            <input type="password" class="login-input" id="passwordField" placeholder="••••" onkeypress="if(event.key==='Enter') attemptLogin()">
+            <button class="login-btn" onclick="attemptLogin()">ဝင်ရောက်မည်</button>
+            <div class="login-error" id="loginErrorTxt">Password မှားယွင်းနေပါသည်။</div>
         </div>
     </div>
 
     <div class="header-container">
         <div class="header">
             <div class="job-count" id="jobCount">0 jobs</div>
-            <button class="add-btn" onclick="addNewJob()">+ Add Job</button>
+            <div class="header-right">
+                <button class="log-toggle-btn" id="logToggleBtn" onclick="toggleLogsPanel()">📜 View Logs</button>
+                <button class="add-btn" onclick="addNewJob()">+ Add Job</button>
+            </div>
         </div>
+        
+        <div class="logs-panel" id="logsPanelElement">
+            <div style="font-weight:bold; font-size:13px; margin-bottom:8px; display:flex; justify-content:space-between;">
+                <span>📋 ဆိုင်တွင်း လုပ်ဆောင်ချက်မှတ်တမ်းများ</span>
+                <span style="cursor:pointer; color:#888;" onclick="toggleLogsPanel()">✕ Close</span>
+            </div>
+            <div id="logsContainer">စာရင်းများဆွဲယူနေသည်...</div>
+        </div>
+
         <div class="search-wrapper">
             <input type="text" class="search-bar" id="searchBar" placeholder="🔍 စာသား သို့မဟုတ် ရက်စွဲဖြင့်ရှာဖွေရန်..." oninput="triggerSearch()">
         </div>
@@ -133,8 +159,12 @@
     </div>
 
     <script>
-        // 🔒 ADMIN PIN CODE CONFIGURATION (အစ်ကို့စိတ်ကြိုက် ပြောင်းလဲနိုင်သည်)
-        const ADMIN_PIN_CODE = "7992"; 
+        // 🔒 USERPASSWORDS CONFIGURATION (အစ်ကို့စိတ်ကြိုက် ပြောင်းလဲနိုင်ပါသည်)
+        const USER_ACCOUNTS = {
+            "Myo Min": "8053", // အစ်ကို့ (Admin) Password
+            "Sharhid": "5415", // Sharhid Password
+            "Ausmaan": "3776"  // Ausmaan Password
+        };
 
         const tg = window.Telegram.WebApp;
         if(tg) { tg.ready(); tg.expand(); }
@@ -147,28 +177,44 @@
         let localExpandedState = {}; 
         let currentFilter = 'all'; 
         let activePreviewJobId = null; 
+        let currentUser = ""; // လက်ရှိဝင်ထားသော User သိမ်းရန်
 
-        // 🔄 Session-based Security Lock System (Refresh တိုင်း ပြန်မတောင်းစေရန်)
+        // 🔄 Session Login Verification 
         function checkSecurityLock() {
-            const isUnlocked = sessionStorage.getItem("appUnlocked");
-            if (isUnlocked === "true") {
-                document.getElementById('pinOverlay').style.display = 'none';
+            const savedUser = sessionStorage.getItem("loggedInUser");
+            if (savedUser && USER_ACCOUNTS[savedUser]) {
+                currentUser = savedUser;
+                document.getElementById('loginOverlay').style.display = 'none';
+                setupUserInterfacePrivileges();
                 initFirebaseSync();
             } else {
-                document.getElementById('pinOverlay').style.display = 'flex';
+                document.getElementById('loginOverlay').style.display = 'flex';
             }
         }
 
-        function verifyAdminPIN() {
-            const entered = document.getElementById('pinField').value;
-            if (entered === ADMIN_PIN_CODE) {
-                sessionStorage.setItem("appUnlocked", "true"); // Session ထဲတွင် မှတ်သားထားမည်
-                document.getElementById('pinOverlay').style.display = 'none';
+        function attemptLogin() {
+            const selectedUser = document.getElementById('userSelectField').value;
+            const enteredPass = document.getElementById('passwordField').value;
+
+            if (USER_ACCOUNTS[selectedUser] && USER_ACCOUNTS[selectedUser] === enteredPass) {
+                sessionStorage.setItem("loggedInUser", selectedUser);
+                currentUser = selectedUser;
+                document.getElementById('loginOverlay').style.display = 'none';
+                setupUserInterfacePrivileges();
                 initFirebaseSync();
             } else {
-                const err = document.getElementById('pinErrorTxt');
+                const err = document.getElementById('loginErrorTxt');
                 err.style.display = 'block';
-                document.getElementById('pinField').value = "";
+                document.getElementById('passwordField').value = "";
+            }
+        }
+
+        // Admin ဖြစ်မှသာ Log ကြည့်ခွင့်ခလုတ် ပေါ်စေမည့်စနစ်
+        function setupUserInterfacePrivileges() {
+            if (currentUser === "Myo Min") {
+                document.getElementById('logToggleBtn').style.display = 'block';
+            } else {
+                document.getElementById('logToggleBtn').style.display = 'none';
             }
         }
 
@@ -179,6 +225,46 @@
                 handleFirebaseData(data);
                 renderApp();
             });
+            if (currentUser === "Myo Min") {
+                fetchLogsFromServer();
+            }
+        }
+
+        // 📜 Write Log to Firebase Action
+        function writeActivityLog(message) {
+            const d = new Date();
+            // မြန်မာစံတော်ချိန် တွက်ချက်မှုပုံစံလေး ထည့်သွင်းထားပါသည်
+            const timestamp = `${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+            const logEntry = {
+                text: `[${timestamp}] - **${currentUser}** ${message}`
+            };
+            fetch(`${FIREBASE_URL}/logs.json`, {
+                method: 'POST',
+                body: JSON.stringify(logEntry)
+            });
+        }
+
+        function fetchLogsFromServer() {
+            fetch(`${FIREBASE_URL}/logs.json`)
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('logsContainer');
+                if (!data) { container.innerHTML = "မှတ်တမ်းမရှိသေးပါ။"; return; }
+                container.innerHTML = "";
+                Object.keys(data).reverse().forEach(key => { // အသစ်တွေကို အပေါ်ဆုံးပြရန် reverse လုပ်သည်
+                    container.insertAdjacentHTML('beforeend', `<div class="log-item">${data[key].text}</div>`);
+                });
+            });
+        }
+
+        function toggleLogsPanel() {
+            const panel = document.getElementById('logsPanelElement');
+            if(panel.style.display === 'block') {
+                panel.style.display = 'none';
+            } else {
+                panel.style.display = 'block';
+                fetchLogsFromServer();
+            }
         }
 
         function handleFirebaseData(rawJobs) {
@@ -209,11 +295,10 @@
             renderApp();
         }
 
-        // ဝန်ထမ်းအလိုက် အရောင်ခွဲခြားမှုသတ်မှတ်ချက် (Pink, Yellow, Grey)
         function getStaffColor(name) {
-            if (name === "Sha") return "#ffc0cb"; // Sharhid -> Soft Pink
-            if (name === "Aus") return "#fff176"; // Ausmaan -> Soft Yellow
-            if (name === "Myo") return "#d3d3d3"; // Myo Min -> Light Grey
+            if (name === "Sha") return "#ffc0cb"; // Soft Pink
+            if (name === "Aus") return "#fff176"; // Soft Yellow
+            if (name === "Myo") return "#d3d3d3"; // Light Grey
             return "white";
         }
 
@@ -307,7 +392,6 @@
             const item = job.workflow[key];
             let activeBulbClass = (item.bulb === 'red' || item.bulb === 'green') ? 'active-bulb' : '';
             
-            // ဝန်ထမ်းနောက်ခံအရောင် သို့မဟုတ် မီးလုံးအနီ/အစိမ်း ဦးစားပေးတွက်ချက်မှု
             let rowBgColor = 'white';
             let textColor = '#333';
             let selectBgColor = 'white';
@@ -322,8 +406,8 @@
             return `
                 <div class="workflow-row" id="row-${job.id}-${key}">
                     <div class="row-controls">
-                        <span class="bulb-btn ${activeBulbClass}" onclick="toggleBulbLogic(${job.id}, '${key}', this)">💡</span>
-                        <select class="staff-select" style="background-color: ${selectBgColor};" onchange="updateWorkflowStaff(${job.id}, '${key}', this)">
+                        <span class="bulb-btn ${activeBulbClass}" onclick="toggleBulbLogic(${job.id}, '${key}', this, '${label}')">💡</span>
+                        <select class="staff-select" style="background-color: ${selectBgColor};" onchange="updateWorkflowStaff(${job.id}, '${key}', this, '${label}')">
                             <option value="">—</option>
                             <option value="Sha" ${item.staff === 'Sha' ? 'selected' : ''}>Sha</option>
                             <option value="Aus" ${item.staff === 'Aus' ? 'selected' : ''}>Aus</option>
@@ -331,22 +415,20 @@
                         </select>
                     </div>
                     <span class="step-name">${label}</span>
-                    <input type="text" class="step-input" style="background-color: ${rowBgColor}; color: ${textColor};" value="${item.text || ''}" placeholder="—" onchange="updateWorkflowTextLive(${job.id}, '${key}', this.value)">
+                    <input type="text" class="step-input" style="background-color: ${rowBgColor}; color: ${textColor};" value="${item.text || ''}" placeholder="—" onchange="updateWorkflowTextLive(${job.id}, '${key}', this.value, '${label}')">
                 </div>
             `;
         }
 
-        function updateWorkflowStaff(id, key, selectEl) {
+        function updateWorkflowStaff(id, key, selectEl, label) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job || !job.dbKey) return;
 
             const staffName = selectEl.value;
             job.workflow[key].staff = staffName;
 
-            // Select Dropdown Background ပြောင်းလဲခြင်း
             selectEl.style.backgroundColor = getStaffColor(staffName);
 
-            // စာရိုက်ကွက် (Input) အရောင်ပါ ချက်ချင်း live ပြောင်းလဲခြင်း
             const rowEl = document.getElementById(`row-${id}-${key}`);
             if(rowEl) {
                 const inputEl = rowEl.querySelector('.step-input');
@@ -359,10 +441,12 @@
             fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
                 method: 'PATCH',
                 body: JSON.stringify({ staff: staffName })
+            }).then(() => {
+                writeActivityLog(`assigned **${staffName || 'None'}** to [${label}] on Order #${id}`);
             });
         }
 
-        function toggleBulbLogic(id, key, btnEl) {
+        function toggleBulbLogic(id, key, btnEl, label) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job || !job.dbKey) return;
 
@@ -396,6 +480,9 @@
             fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
                 method: 'PATCH',
                 body: JSON.stringify({ bulb: nextBulb })
+            }).then(() => {
+                let statusText = nextBulb === 'red' ? 'Alert/Stop' : (nextBulb === 'green' ? 'Done' : 'Normal');
+                writeActivityLog(`changed bulb status to **${statusText}** on [${label}] of Order #${id}`);
             });
         }
 
@@ -457,6 +544,8 @@
                         fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
                             method: 'PATCH',
                             body: JSON.stringify({ image: base64Image })
+                        }).then(() => {
+                            writeActivityLog(`uploaded a new image for Order #${jobId}`);
                         });
                     }
                 };
@@ -500,13 +589,15 @@
             }
         }
 
-        function updateWorkflowTextLive(id, key, value) {
+        function updateWorkflowTextLive(id, key, value, label) {
             const job = jobsData.find(j => j && j.id === id);
             if (job && job.dbKey) {
                 job.workflow[key].text = value;
                 fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
                     method: 'PATCH',
                     body: JSON.stringify({ text: value })
+                }).then(() => {
+                    writeActivityLog(`updated text to "${value}" on [${label}] of Order #${id}`);
                 });
             }
         }
@@ -514,10 +605,13 @@
         function updateTitle(id, value) {
             const job = jobsData.find(j => j && j.id === id);
             if (job && job.dbKey) {
+                const oldTitle = job.title;
                 job.title = value;
                 fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
                     method: 'PATCH',
                     body: JSON.stringify({ title: value })
+                }).then(() => {
+                    writeActivityLog(`changed Order #${id} title from "${oldTitle}" to "${value}"`);
                 });
             }
         }
@@ -529,6 +623,8 @@
                 fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
                     method: 'PATCH',
                     body: JSON.stringify({ date: value })
+                }).then(() => {
+                    writeActivityLog(`updated date of Order #${id} to ${value}`);
                 });
             }
         }
@@ -546,6 +642,8 @@
                 fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
                     method: 'PATCH',
                     body: JSON.stringify({ isDone: job.isDone })
+                }).then(() => {
+                    writeActivityLog(`marked Order #${id} as ${job.isDone ? '**FINISHED**' : '**UNFINISHED**'}`);
                 });
             }
         }
@@ -584,6 +682,7 @@
                 newJob.dbKey = nextId.toString();
                 jobsData.push(newJob);
                 renderApp();
+                writeActivityLog(`created a **new order** #${nextId}`);
             });
         }
 
@@ -596,6 +695,7 @@
                 }).then(() => {
                     jobsData = jobsData.filter(j => j && j.id !== id);
                     renderApp();
+                    writeActivityLog(`❌ **deleted** Order #${id}`);
                 });
             }
         }
