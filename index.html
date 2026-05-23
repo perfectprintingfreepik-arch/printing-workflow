@@ -52,6 +52,11 @@
         .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #eee; }
         .dashboard-close-btn { background: #e53935; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
         
+        /* Dashboard Internal Tabs style */
+        .dash-filter-tabs { display: flex; gap: 6px; margin-bottom: 15px; width: 100%; max-width: 320px; }
+        .dash-tab-btn { flex: 1; padding: 6px 10px; border: 1px solid #0284c7; background: white; color: #0284c7; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; text-align: center; }
+        .dash-tab-btn.active { background: #0284c7; color: white; }
+
         /* Dashboard Responsive Table */
         .table-wrapper { width: 100%; overflow-x: auto; background: white; border-radius: 8px; border: 1px solid #ddd; }
         .dash-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; min-width: 750px; }
@@ -152,7 +157,6 @@
         <div class="header">
             <div class="job-count" id="jobCount">0 jobs</div>
             <div class="header-right">
-                <!-- 📊 Dashboard Button (Only visible to Admin) -->
                 <button class="dashboard-toggle-btn" id="dashboardToggleBtn" onclick="openDashboardPopup()">📊 Dashboard</button>
                 <button class="log-toggle-btn" id="logToggleBtn" onclick="toggleLogsPanel()">📜 View Logs</button>
                 <button class="add-btn" onclick="addNewJob()">+ Add Job</button>
@@ -177,7 +181,6 @@
             <button class="tab-btn active" id="tab-all" onclick="switchFilterTab('all')">All</button>
             <button class="tab-btn" id="tab-unfinished" onclick="switchFilterTab('unfinished')">Unfinished</button>
             <button class="tab-btn" id="tab-finished" onclick="switchFilterTab('finished')">Finished</button>
-            <!-- 🔴 Alert Tab Button added here -->
             <button class="tab-btn alert-tab" id="tab-alerts" onclick="switchFilterTab('alerts')">🔴 Alerts</button>
         </div>
     </div>
@@ -192,6 +195,14 @@
                 <h2>📊 ဆိုင်တွင်း လုပ်ငန်းခွင် ခြုံငုံမြင်ကွင်း (Overview)</h2>
                 <button class="dashboard-close-btn" onclick="closeDashboardPopup()">✕ Close</button>
             </div>
+
+            <!-- 🎛️ Dashboard Internal Filters Added Here -->
+            <div class="dash-filter-tabs">
+                <button class="dash-tab-btn active" id="dash-tab-all" onclick="switchDashboardFilter('all')">All</button>
+                <button class="dash-tab-btn" id="dash-tab-unfinished" onclick="switchDashboardFilter('unfinished')">Unfinished</button>
+                <button class="dash-tab-btn" id="dash-tab-finished" onclick="switchDashboardFilter('finished')">Finished</button>
+            </div>
+
             <div class="table-wrapper">
                 <table class="dash-table">
                     <thead>
@@ -245,6 +256,7 @@
         const itemsPerPage = 10;
         let localExpandedState = {}; 
         let currentFilter = 'all'; 
+        let dashboardFilter = 'all'; // Default dashboard filter state
         let activePreviewJobId = null; 
         let currentUser = ""; 
 
@@ -353,8 +365,27 @@
             }
         }
 
-        /* 📊 Dashboard Core Logic */
+        /* 📊 Dashboard Core Logic with Filters */
         function openDashboardPopup() {
+            dashboardFilter = 'all'; // Default back to all when newly opened
+            updateDashboardTabUI();
+            renderDashboardTable();
+            document.getElementById('dashboardPopupOverlay').style.display = 'block';
+        }
+
+        function switchDashboardFilter(type) {
+            dashboardFilter = type;
+            updateDashboardTabUI();
+            renderDashboardTable();
+        }
+
+        function updateDashboardTabUI() {
+            document.getElementById('dash-tab-all').classList.toggle('active', dashboardFilter === 'all');
+            document.getElementById('dash-tab-unfinished').classList.toggle('active', dashboardFilter === 'unfinished');
+            document.getElementById('dash-tab-finished').classList.toggle('active', dashboardFilter === 'finished');
+        }
+
+        function renderDashboardTable() {
             const tbody = document.getElementById('dashboardTableBody');
             tbody.innerHTML = "";
             
@@ -363,6 +394,10 @@
             
             sortedJobs.forEach(job => {
                 if(!job) return;
+
+                // Dashboard filter verification step
+                if (dashboardFilter === 'finished' && job.isDone !== true) return;
+                if (dashboardFilter === 'unfinished' && job.isDone === true) return;
                 
                 const getStepCell = (stepKey) => {
                     const step = (job.workflow && job.workflow[stepKey]) ? job.workflow[stepKey] : {};
@@ -395,8 +430,6 @@
                 `;
                 tbody.insertAdjacentHTML('beforeend', trHTML);
             });
-            
-            document.getElementById('dashboardPopupOverlay').style.display = 'block';
         }
 
         function closeDashboardPopup() {
@@ -439,7 +472,6 @@
             return "white";
         }
 
-        // Checks if a job has ANY red bulb in its workflow
         function hasAlertStatus(job) {
             if (!job || !job.workflow) return false;
             return Object.keys(job.workflow).some(key => job.workflow[key].bulb === 'red');
@@ -453,7 +485,7 @@
                 let matchTab = true;
                 if (currentFilter === 'finished') matchTab = job.isDone === true;
                 else if (currentFilter === 'unfinished') matchTab = !job.isDone;
-                else if (currentFilter === 'alerts') matchTab = hasAlertStatus(job); // 🔴 Alert filter condition
+                else if (currentFilter === 'alerts') matchTab = hasAlertStatus(job);
                 
                 const matchSearch = (job.title && job.title.toLowerCase().includes(searchInput)) || 
                                     (job.date && job.date.toLowerCase().includes(searchInput)) ||
@@ -510,7 +542,6 @@
                                 <span class="arrow">${isExpanded ? '▲' : '▼'}</span> <span class="text">${isExpanded ? 'Less' : 'More details'}</span>
                             </div>
                             <div class="footer-actions">
-                                <!-- 📄 Clone Button added here -->
                                 <button class="clone-btn" onclick="cloneExistingJob(${job.id})" title="Duplicate Job">📄 Clone</button>
                                 <button class="delete-btn" onclick="deleteJob(${job.id})">🗑️</button>
                             </div>
@@ -632,7 +663,7 @@
                 body: JSON.stringify({ bulb: nextBulb })
             }).then(() => {
                 let statusText = nextBulb === 'red' ? 'Alert/Stop' : (nextBulb === 'green' ? 'Done' : 'Normal');
-                renderApp(); // Re-render to show/hide ⚠️ ALERT tags on top
+                renderApp(); 
                 writeActivityLog(id, job.title, `changed bulb status to **${statusText}** on [${label}]`);
             });
         }
@@ -837,7 +868,6 @@
             });
         }
 
-        /* 📄 Clone Engine Functionality */
         function cloneExistingJob(sourceId) {
             const sourceJob = jobsData.find(j => j && j.id === sourceId);
             if (!sourceJob) return;
@@ -849,7 +879,6 @@
             jobsData.forEach(j => { if (j && j.id > maxId) maxId = j.id; });
             const nextId = maxId + 1;
 
-            // Deep clone the workflow data structure cleanly
             const clonedWorkflow = {};
             if (sourceJob.workflow) {
                 Object.keys(sourceJob.workflow).forEach(stepKey => {
@@ -857,7 +886,7 @@
                     clonedWorkflow[stepKey] = {
                         text: srcStep.text || "",
                         staff: srcStep.staff || "",
-                        bulb: "black", // Default bulb to normal for the new cloned order
+                        bulb: "black", 
                         color: "white"
                     };
                 });
@@ -867,7 +896,7 @@
                 id: nextId,
                 title: `${sourceJob.title || 'Untitled'} (Copy)`,
                 date: todayStr,
-                image: sourceJob.image || "", // Clone image too if exists
+                image: sourceJob.image || "", 
                 isDone: false,
                 workflow: clonedWorkflow
             };
