@@ -52,7 +52,7 @@
         .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #eee; }
         .dashboard-close-btn { background: #e53935; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
         
-        /* Dashboard Internal Tabs Style (Matches Main Tab Layout) */
+        /* Dashboard Internal Tabs Style */
         .dash-filter-tabs { display: flex; justify-content: center; gap: 4px; margin-bottom: 15px; width: 100%; max-width: 360px; }
         .dash-tab-btn { flex: 1; padding: 8px 0; border: 2px solid #0284c7; background: white; color: #0284c7; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 12px; text-align: center; transition: all 0.2s; }
         .dash-tab-btn.active { background: #0284c7; color: white; }
@@ -113,13 +113,13 @@
         .workflow-details { display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
         .workflow-details.active { display: block; }
         
-        /* Workflow Rows (Normal look, won't turn red globally) */
+        /* Workflow Rows */
         .workflow-row { display: flex; align-items: center; padding: 6px; border-bottom: 1px solid #f2f2f2; gap: 6px; border-radius: 6px; margin-bottom: 3px; background-color: white; }
         .row-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
         
-        /* Done Light Toggle Style */
-        .bulb-btn { cursor: pointer; font-size: 15px; user-select: none; opacity: 0.3; filter: grayscale(100%); }
-        .bulb-btn.active-bulb { opacity: 1 !important; filter: none !important; }
+        /* 💡 Original Bulb Toggle Style (Brought Back!) */
+        .bulb-btn { cursor: pointer; font-size: 16px; user-select: none; transition: transform 0.1s; display: inline-block; }
+        .bulb-btn:active { transform: scale(1.2); }
         
         /* Compact Staff Dropdown */
         .staff-select { padding: 4px 2px; border: 1px solid #ccc; border-radius: 4px; font-size: 11px; font-weight: bold; width: 55px; outline: none; background-color: white; flex-shrink: 0; text-align: center; }
@@ -206,7 +206,7 @@
                 <button class="dashboard-close-btn" onclick="closeDashboardPopup()">✕ Close</button>
             </div>
 
-            <!-- 🎛️ Dashboard Internal Filters Fixed (Matches main view style) -->
+            <!-- Dashboard Internal Filters -->
             <div style="display:flex; justify-content:center; margin-bottom: 15px;">
                 <div class="dash-filter-tabs">
                     <button class="dash-tab-btn active" id="dash-tab-all" onclick="switchDashboardFilter('all')">All</button>
@@ -377,7 +377,6 @@
             }
         }
 
-        /* 📊 Dashboard Filters Core Logic Fixed */
         function openDashboardPopup() {
             dashboardFilter = 'all'; 
             updateDashboardTabUI();
@@ -397,6 +396,7 @@
             document.getElementById('dash-tab-finished').classList.toggle('active', dashboardFilter === 'finished');
         }
 
+        /* 📊 Render Dashboard Table (Correctly shows Red🔴 and Green🟢 backgrounds!) */
         function renderDashboardTable() {
             const tbody = document.getElementById('dashboardTableBody');
             tbody.innerHTML = "";
@@ -406,7 +406,6 @@
             sortedJobs.forEach(job => {
                 if(!job) return;
 
-                // Tab filters implementation for Dashboard
                 if (dashboardFilter === 'finished' && job.isDone !== true) return;
                 if (dashboardFilter === 'unfinished' && job.isDone === true) return;
                 
@@ -414,8 +413,14 @@
                     const step = (job.workflow && job.workflow[stepKey]) ? job.workflow[stepKey] : {};
                     let bg = 'white'; let color = '#333';
                     
-                    if (step.staff) bg = getStaffColor(step.staff);
-                    if (step.bulb === 'green') { bg = '#4caf50'; color = 'white'; }
+                    // If bulb state exists, apply Red or Green colors
+                    if (step.bulb === 'green') { 
+                        bg = '#2e7d32'; color = 'white'; // Strong Green
+                    } else if (step.bulb === 'green-flash' || step.bulb === 'red') { 
+                        bg = '#c62828'; color = 'white'; // Strong Red
+                    } else if (step.staff) {
+                        bg = getStaffColor(step.staff);
+                    }
                     
                     const labelStr = step.staff ? `<b>[${step.staff}]</b> ${step.text || ''}` : (step.text || '—');
                     return `<td style="background-color:${bg}; color:${color}; font-size:11px;">${labelStr}</td>`;
@@ -425,7 +430,6 @@
                     `<span class="dash-cell-badge" style="background:#2481cc; color:white;">DONE</span>` : 
                     `<span class="dash-cell-badge" style="background:#aaa; color:white;">PENDING</span>`;
 
-                // Highlight entire row context on dashboard if main alert is triggered
                 const rowAlertStyle = job.isAlert === true ? 'background-color: #ffeeeb;' : '';
 
                 const trHTML = `
@@ -586,23 +590,32 @@
             renderPaginationControls(totalPages);
         }
 
+        /* 💡 Render Workflow Row with Red/Green Bulb Toggle features */
         function renderWorkflowRow(job, key, label) {
             if (!job.workflow) job.workflow = {};
             if (!job.workflow[key]) job.workflow[key] = { text: "", color: "white", bulb: "black", staff: "" };
             
             const item = job.workflow[key];
-            const isDoneOn = item.bulb === 'green';
             
-            let rowBgColor = 'white';
-            if (item.staff) {
+            // 🔴 🟢 Determine Bulb emoji and background color according to its state
+            let bulbEmoji = "⚫"; 
+            let rowBgColor = "white";
+
+            if (item.bulb === 'green') {
+                bulbEmoji = "🟢";
+                rowBgColor = "#e8f5e9"; // Light green row
+            } else if (item.bulb === 'green-flash' || item.bulb === 'red') {
+                bulbEmoji = "🔴";
+                rowBgColor = "#ffebee"; // Light red row
+            } else if (item.staff) {
                 rowBgColor = getStaffColor(item.staff);
             }
             
             return `
                 <div class="workflow-row" id="row-${job.id}-${key}" style="background-color: ${rowBgColor};">
                     <div class="row-controls">
-                        <!-- ✅ Done Toggle Icon -->
-                        <span class="bulb-btn ${isDoneOn ? 'active-bulb' : ''}" onclick="toggleDoneBulb(${job.id}, '${key}', this, '${label}')" title="Mark step as done">✔️</span>
+                        <!-- 💡 Bulb Icon Button (Cycles: Black -> Red -> Green -> Black) -->
+                        <span class="bulb-btn" onclick="cycleBulbState(${job.id}, '${key}', '${label}')" title="Change bulb state">${bulbEmoji}</span>
                         
                         <select class="staff-select" onchange="updateWorkflowStaff(${job.id}, '${key}', this, '${label}')">
                             <option value="">—</option>
@@ -633,7 +646,6 @@
             });
         }
 
-        /* 🚨 Toggle Main Alert (Beside finished button, changes only the alert button color) */
         function toggleMainAlert(id, checkboxEl) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job || !job.dbKey) return;
@@ -650,13 +662,25 @@
             });
         }
 
-        /* ✔️ Done Check Logic inside row */
-        function toggleDoneBulb(id, key, btnEl, label) {
+        /* 🔄 🔴 🟢 Bulb Core Cycle Logic (Black -> Red -> Green -> Off) */
+        function cycleBulbState(id, key, label) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job || !job.dbKey) return;
 
             let currentBulb = job.workflow[key].bulb || 'black';
-            let nextBulb = (currentBulb === 'green') ? 'black' : 'green';
+            let nextBulb = 'black';
+            let logStatus = 'OFF';
+
+            if (currentBulb === 'black') {
+                nextBulb = 'red'; // Turns Red 🔴
+                logStatus = '🔴 RED (INCOMPLETE)';
+            } else if (currentBulb === 'red' || currentBulb === 'green-flash') {
+                nextBulb = 'green'; // Turns Green 🟢
+                logStatus = '🟢 GREEN (COMPLETED)';
+            } else if (currentBulb === 'green') {
+                nextBulb = 'black'; // Turns Off ⚫
+                logStatus = '⚫ OFF';
+            }
 
             job.workflow[key].bulb = nextBulb;
 
@@ -665,7 +689,7 @@
                 body: JSON.stringify({ bulb: nextBulb })
             }).then(() => {
                 renderApp(); 
-                writeActivityLog(id, job.title, `marked step [${label}] as **${nextBulb === 'green' ? 'COMPLETED' : 'INCOMPLETE'}**`);
+                writeActivityLog(id, job.title, `changed [${label}] bulb status to ${logStatus}`);
             });
         }
 
@@ -876,7 +900,7 @@
                     clonedWorkflow[stepKey] = {
                         text: srcStep.text || "",
                         staff: srcStep.staff || "",
-                        bulb: "black", 
+                        bulb: srcStep.bulb || "black", 
                         color: "white"
                     };
                 });
