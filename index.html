@@ -117,8 +117,10 @@
         .workflow-row { display: flex; align-items: center; padding: 6px; border-bottom: 1px solid #f2f2f2; gap: 6px; border-radius: 6px; margin-bottom: 3px; background-color: white; }
         .row-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
         
-        /* 💡 Bulb Button Style */
-        .bulb-btn { cursor: pointer; font-size: 16px; user-select: none; display: inline-block; }
+        /* 💡 🛠️ Bulb Button SVG Style */
+        .bulb-btn { cursor: pointer; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; user-select: none; transition: transform 0.1s ease; }
+        .bulb-btn:active { transform: scale(0.9); }
+        .bulb-svg { width: 20px; height: 20px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
         
         /* Compact Staff Dropdown */
         .staff-select { padding: 4px 2px; border: 1px solid #ccc; border-radius: 4px; font-size: 11px; font-weight: bold; width: 55px; outline: none; background-color: white; flex-shrink: 0; text-align: center; }
@@ -397,7 +399,6 @@
             document.getElementById('dash-tab-finished').classList.toggle('active', dashboardFilter === 'finished');
         }
 
-        /* 📊 Dashboard View Syncing with Input Background Styles */
         function renderDashboardTable() {
             const tbody = document.getElementById('dashboardTableBody');
             tbody.innerHTML = "";
@@ -415,9 +416,9 @@
                     let bg = 'white'; let color = '#333';
                     
                     if (step.bulb === 'green') { 
-                        bg = '#2e7d32'; color = 'white'; // Strong Green
+                        bg = '#2e7d32'; color = 'white'; 
                     } else if (step.bulb === 'red') { 
-                        bg = '#c62828'; color = 'white'; // Strong Red
+                        bg = '#c62828'; color = 'white'; 
                     } else if (step.staff) {
                         bg = getStaffColor(step.staff);
                     }
@@ -589,35 +590,50 @@
             renderPaginationControls(totalPages);
         }
 
-        /* 💡 Render Workflow Row with Custom Input background colors sync */
+        /* 💡 Clean Lightbulb SVG Engine with live color fill matching states */
         function renderWorkflowRow(job, key, label) {
             if (!job.workflow) job.workflow = {};
             if (!job.workflow[key]) job.workflow[key] = { text: "", color: "white", bulb: "black", staff: "" };
             
             const item = job.workflow[key];
             
-            let bulbEmoji = "⚫"; 
             let rowBgColor = "white"; 
-            let inputStyle = "background-color: white; color: #333; border: 1px solid #ddd;"; // Default input box look
+            let inputStyle = "background-color: white; color: #333; border: 1px solid #ddd;"; 
+            
+            // Default Off State Bulb Styles
+            let strokeColor = "#555555";
+            let fillColor = "none";
 
-            // 🎨 Adjust Input block background and Text color live matching requirements!
             if (item.bulb === 'red') {
-                bulbEmoji = "🔴";
-                rowBgColor = "#ffebee"; // Light red row
-                inputStyle = "background-color: #d32f2f; color: white; border: 1px solid #d32f2f;"; // Whole block red + white letters
+                rowBgColor = "#ffebee"; 
+                inputStyle = "background-color: #d32f2f; color: white; border: 1px solid #d32f2f;"; 
+                strokeColor = "#d32f2f";
+                fillColor = "#e53935"; // Lit Red SVG Fill
             } else if (item.bulb === 'green') {
-                bulbEmoji = "🟢";
-                rowBgColor = "#e8f5e9"; // Light green row
-                inputStyle = "background-color: #388e3c; color: white; border: 1px solid #388e3c;"; // Whole block green + white letters
+                rowBgColor = "#e8f5e9"; 
+                inputStyle = "background-color: #388e3c; color: white; border: 1px solid #388e3c;"; 
+                strokeColor = "#388e3c";
+                fillColor = "#4caf50"; // Lit Green SVG Fill
             } else if (item.staff) {
                 rowBgColor = getStaffColor(item.staff);
             }
             
+            // Beautiful SVG Lightbulb Structure
+            const bulbSVG = `
+                <svg class="bulb-svg" viewBox="0 0 24 24" style="stroke: ${strokeColor}; fill: ${fillColor};">
+                    <path d="M15 14c.75-.85 1.25-2 1.25-3.25 0-2.62-2.13-4.75-4.75-4.75S6.75 8.13 6.75 10.75c0 1.25.5 2.4 1.25 3.25L9 18h6l1-4z"></path>
+                    <path d="M10 22h4"></path>
+                    <path d="M11 18h2"></path>
+                </svg>
+            `;
+            
             return `
                 <div class="workflow-row" id="row-${job.id}-${key}" style="background-color: ${rowBgColor};">
                     <div class="row-controls">
-                        <!-- 💡 Bulb Icon Button (Cycles: Off⚫ -> Red🔴 -> Green🟢 -> Off⚫) -->
-                        <span class="bulb-btn" onclick="cycleBulbState(${job.id}, '${key}', '${label}')" title="Change bulb state">${bulbEmoji}</span>
+                        <!-- 💡 Bulb Icon SVG Button Interface -->
+                        <div class="bulb-btn" onclick="cycleBulbState(${job.id}, '${key}', '${label}')" title="Change bulb state">
+                            ${bulbSVG}
+                        </div>
                         
                         <select class="staff-select" onchange="updateWorkflowStaff(${job.id}, '${key}', this, '${label}')">
                             <option value="">—</option>
@@ -664,7 +680,6 @@
             });
         }
 
-        /* 🔄 🔴 🟢 Bulb Cycle Engine with custom text box background color integration */
         function cycleBulbState(id, key, label) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job || !job.dbKey) return;
@@ -674,13 +689,13 @@
             let logStatus = 'OFF';
 
             if (currentBulb === 'black') {
-                nextBulb = 'red'; // 1st click: Turns Red 🔴 (Full input red + white text)
+                nextBulb = 'red'; 
                 logStatus = '🔴 RED (INCOMPLETE)';
             } else if (currentBulb === 'red') {
-                nextBulb = 'green'; // 2nd click: Turns Green 🟢 (Full input green + white text)
+                nextBulb = 'green'; 
                 logStatus = '🟢 GREEN (COMPLETED)';
             } else if (currentBulb === 'green') {
-                nextBulb = 'black'; // 3rd click: Reset to Off ⚫
+                nextBulb = 'black'; 
                 logStatus = '⚫ OFF';
             }
 
