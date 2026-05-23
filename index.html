@@ -22,26 +22,43 @@
         .header-container { background: #f0f2f5; position: sticky; top: 0; z-index: 100; padding-bottom: 10px; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .job-count { font-size: 16px; font-weight: bold; color: #666; }
-        .header-right { display: flex; gap: 8px; align-items: center; }
-        .add-btn { background-color: #2481cc; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .log-toggle-btn { background-color: #333; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; display: none; }
+        .header-right { display: flex; gap: 6px; align-items: center; }
+        .add-btn { background-color: #2481cc; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        .log-toggle-btn { background-color: #333; color: white; border: none; padding: 8px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; display: none; }
+        .dashboard-toggle-btn { background-color: #0284c7; color: white; border: none; padding: 8px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; display: none; }
         
         /* Search Bar */
         .search-wrapper { display: flex; justify-content: center; margin-bottom: 12px; }
         .search-bar { width: 100%; max-width: 400px; padding: 10px 15px; border: 1px solid #ccc; border-radius: 20px; font-size: 14px; outline: none; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
 
-        /* Log Search Bar específica */
+        /* Log Search Bar */
         .log-search-bar { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; margin-bottom: 10px; outline: none; }
 
         /* Filter Tabs Line */
-        .filter-tabs { display: flex; justify-content: center; gap: 6px; margin-bottom: 12px; }
-        .tab-btn { flex: 1; max-width: 110px; padding: 8px 0; border: 2px solid #2481cc; background: white; color: #2481cc; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 13px; text-align: center; transition: all 0.2s; }
+        .filter-tabs { display: flex; justify-content: center; gap: 4px; margin-bottom: 12px; width: 100%; }
+        .tab-btn { flex: 1; padding: 8px 0; border: 2px solid #2481cc; background: white; color: #2481cc; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 12px; text-align: center; transition: all 0.2s; }
         .tab-btn.active { background: #2481cc; color: white; }
+        .tab-btn.alert-tab { border-color: #e53935; color: #e53935; }
+        .tab-btn.alert-tab.active { background: #e53935; color: white; }
 
         /* Logs Panel UI */
         .logs-panel { display: none; background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); max-height: 320px; overflow-y: auto; border: 1px solid #ddd; }
         .log-items-container { max-height: 200px; overflow-y: auto; }
         .log-item { font-size: 12px; padding: 6px 0; border-bottom: 1px dashed #eee; color: #444; line-height: 1.4; }
+
+        /* Dashboard Popup Modal UI */
+        .dashboard-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 500; padding: 15px; overflow-y: auto; }
+        .dashboard-content { background: white; border-radius: 16px; padding: 20px; width: 100%; max-width: 900px; margin: 20px auto; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #eee; }
+        .dashboard-close-btn { background: #e53935; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        
+        /* Dashboard Responsive Table */
+        .table-wrapper { width: 100%; overflow-x: auto; background: white; border-radius: 8px; border: 1px solid #ddd; }
+        .dash-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; min-width: 750px; }
+        .dash-table th, .dash-table td { padding: 10px 8px; border: 1px solid #ddd; }
+        .dash-table th { background: #f4f6f9; color: #333; font-weight: bold; position: sticky; top: 0; }
+        .dash-table tr:nth-child(even) { background: #f9f9f9; }
+        .dash-cell-badge { padding: 3px 6px; border-radius: 4px; font-weight: bold; display: inline-block; font-size: 11px; }
 
         /* Job Card Layout */
         .job-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative; }
@@ -75,7 +92,9 @@
         /* Card Action Footer */
         .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 5px; position: relative; }
         .more-details-btn { color: #888; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 4px; user-select: none; margin: 0 auto; }
-        .delete-btn { background: none; border: none; color: #e53935; cursor: pointer; font-size: 16px; padding: 5px; position: absolute; right: 0; top: 0; display: flex; align-items: center; justify-content: center; opacity: 0.7; }
+        .footer-actions { display: flex; gap: 10px; align-items: center; position: absolute; right: 0; top: 0; }
+        .clone-btn { background: none; border: none; color: #0284c7; cursor: pointer; font-size: 14px; font-weight: bold; padding: 5px; opacity: 0.8; }
+        .delete-btn { background: none; border: none; color: #e53935; cursor: pointer; font-size: 15px; padding: 5px; opacity: 0.7; }
         
         /* Workflow Table */
         .workflow-details { display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
@@ -133,6 +152,8 @@
         <div class="header">
             <div class="job-count" id="jobCount">0 jobs</div>
             <div class="header-right">
+                <!-- 📊 Dashboard Button (Only visible to Admin) -->
+                <button class="dashboard-toggle-btn" id="dashboardToggleBtn" onclick="openDashboardPopup()">📊 Dashboard</button>
                 <button class="log-toggle-btn" id="logToggleBtn" onclick="toggleLogsPanel()">📜 View Logs</button>
                 <button class="add-btn" onclick="addNewJob()">+ Add Job</button>
             </div>
@@ -144,7 +165,6 @@
                 <span>📋 ဆိုင်တွင်း လုပ်ဆောင်ချက်မှတ်တမ်းများ</span>
                 <span style="cursor:pointer; color:#888;" onclick="toggleLogsPanel()">✕ Close</span>
             </div>
-            <!-- 🔍 Log Search Input field Added here -->
             <input type="text" class="log-search-bar" id="logSearchBar" placeholder="🔍 ဝန်ထမ်းအမည်၊ ဖိုင်အမည်၊ စာသားဖြင့်ရှာရန်..." oninput="filterActivityLogs()">
             <div id="logsContainer" class="log-items-container">စာရင်းများဆွဲယူနေသည်...</div>
         </div>
@@ -157,11 +177,44 @@
             <button class="tab-btn active" id="tab-all" onclick="switchFilterTab('all')">All</button>
             <button class="tab-btn" id="tab-unfinished" onclick="switchFilterTab('unfinished')">Unfinished</button>
             <button class="tab-btn" id="tab-finished" onclick="switchFilterTab('finished')">Finished</button>
+            <!-- 🔴 Alert Tab Button added here -->
+            <button class="tab-btn alert-tab" id="tab-alerts" onclick="switchFilterTab('alerts')">🔴 Alerts</button>
         </div>
     </div>
 
     <div id="jobListContainer"></div>
     <div class="pagination" id="paginationContainer"></div>
+
+    <!-- 📊 Dashboard Popup Modal -->
+    <div class="dashboard-overlay" id="dashboardPopupOverlay">
+        <div class="dashboard-content">
+            <div class="dashboard-header">
+                <h2>📊 ဆိုင်တွင်း လုပ်ငန်းခွင် ခြုံငုံမြင်ကွင်း (Overview)</h2>
+                <button class="dashboard-close-btn" onclick="closeDashboardPopup()">✕ Close</button>
+            </div>
+            <div class="table-wrapper">
+                <table class="dash-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>အော်ဒါဖိုင်အမည်</th>
+                            <th>Paper Type</th>
+                            <th>CTP</th>
+                            <th>Press</th>
+                            <th>Lamination</th>
+                            <th>Die Cut</th>
+                            <th>Cutting</th>
+                            <th>Binding</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashboardTableBody">
+                        <!-- Rows injected via javascript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <!-- Image Lightbox Modal -->
     <div class="preview-modal" id="imagePreviewModal">
@@ -187,7 +240,7 @@
         const FIREBASE_URL = "https://printing-workflow-43d91-default-rtdb.asia-southeast1.firebasedatabase.app"; 
 
         let jobsData = [];
-        let allLogsCached = []; // Global array to keep logs data for live searching
+        let allLogsCached = []; 
         let currentPage = 1;
         const itemsPerPage = 10;
         let localExpandedState = {}; 
@@ -227,8 +280,10 @@
         function setupUserInterfacePrivileges() {
             if (currentUser === "Myo Min") {
                 document.getElementById('logToggleBtn').style.display = 'block';
+                document.getElementById('dashboardToggleBtn').style.display = 'block';
             } else {
                 document.getElementById('logToggleBtn').style.display = 'none';
+                document.getElementById('dashboardToggleBtn').style.display = 'none';
             }
         }
 
@@ -247,7 +302,6 @@
         function writeActivityLog(jobId, jobTitle, actionMessage) {
             const d = new Date();
             const timestamp = `${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-            
             const cleanTitle = jobTitle ? jobTitle : "No Name";
             const message = `[${timestamp}] - **${currentUser}** ${actionMessage} on **Order #${jobId} (${cleanTitle})**`;
             
@@ -264,10 +318,8 @@
             .then(data => {
                 allLogsCached = [];
                 if (data) {
-                    Object.keys(data).forEach(key => {
-                        allLogsCached.push(data[key]);
-                    });
-                    allLogsCached.reverse(); // Newest logs first
+                    Object.keys(data).forEach(key => { allLogsCached.push(data[key]); });
+                    allLogsCached.reverse();
                 }
                 displayLogs(allLogsCached);
             });
@@ -275,17 +327,13 @@
 
         function displayLogs(logsArray) {
             const container = document.getElementById('logsContainer');
-            if (logsArray.length === 0) { 
-                container.innerHTML = "မှတ်တမ်းရှာမတွေ့ပါ။"; 
-                return; 
-            }
+            if (logsArray.length === 0) { container.innerHTML = "မှတ်တမ်းမရှိပါ။"; return; }
             container.innerHTML = "";
             logsArray.forEach(log => {
                 container.insertAdjacentHTML('beforeend', `<div class="log-item">${log.text}</div>`);
             });
         }
 
-        // Live Log Filtering Engine
         function filterActivityLogs() {
             const searchText = document.getElementById('logSearchBar').value.toLowerCase();
             const filtered = allLogsCached.filter(log => {
@@ -300,9 +348,59 @@
                 panel.style.display = 'none';
             } else {
                 panel.style.display = 'block';
-                document.getElementById('logSearchBar').value = ""; // Clear search when re-opening
+                document.getElementById('logSearchBar').value = "";
                 fetchLogsFromServer();
             }
+        }
+
+        /* 📊 Dashboard Core Logic */
+        function openDashboardPopup() {
+            const tbody = document.getElementById('dashboardTableBody');
+            tbody.innerHTML = "";
+            
+            // Sort by newest order first
+            const sortedJobs = [...jobsData].sort((a,b) => b.id - a.id);
+            
+            sortedJobs.forEach(job => {
+                if(!job) return;
+                
+                const getStepCell = (stepKey) => {
+                    const step = (job.workflow && job.workflow[stepKey]) ? job.workflow[stepKey] : {};
+                    let bg = 'white'; let color = '#333';
+                    if (step.staff) bg = getStaffColor(step.staff);
+                    if (step.bulb === 'red') { bg = '#e53935'; color = 'white'; }
+                    else if (step.bulb === 'green') { bg = '#4caf50'; color = 'white'; }
+                    
+                    const labelStr = step.staff ? `<b>[${step.staff}]</b> ${step.text || ''}` : (step.text || '—');
+                    return `<td style="background-color:${bg}; color:${color}; font-size:11px;">${labelStr}</td>`;
+                };
+
+                const statusBadge = job.isDone ? 
+                    `<span class="dash-cell-badge" style="background:#2481cc; color:white;">DONE</span>` : 
+                    `<span class="dash-cell-badge" style="background:#aaa; color:white;">PENDING</span>`;
+
+                const trHTML = `
+                    <tr>
+                        <td><b>#${job.id}</b></td>
+                        <td><b>${job.title || 'No Title'}</b></td>
+                        ${getStepCell('paperType')}
+                        ${getStepCell('ctp')}
+                        ${getStepCell('press')}
+                        ${getStepCell('lamination')}
+                        ${getStepCell('dieCut')}
+                        ${getStepCell('cutting')}
+                        ${getStepCell('binding')}
+                        <td>${statusBadge}</td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', trHTML);
+            });
+            
+            document.getElementById('dashboardPopupOverlay').style.display = 'block';
+        }
+
+        function closeDashboardPopup() {
+            document.getElementById('dashboardPopupOverlay').style.display = 'none';
         }
 
         function handleFirebaseData(rawJobs) {
@@ -324,6 +422,7 @@
             document.getElementById('tab-all').classList.toggle('active', type === 'all');
             document.getElementById('tab-unfinished').classList.toggle('active', type === 'unfinished');
             document.getElementById('tab-finished').classList.toggle('active', type === 'finished');
+            document.getElementById('tab-alerts').classList.toggle('active', type === 'alerts');
             currentPage = 1;
             renderApp();
         }
@@ -340,6 +439,12 @@
             return "white";
         }
 
+        // Checks if a job has ANY red bulb in its workflow
+        function hasAlertStatus(job) {
+            if (!job || !job.workflow) return false;
+            return Object.keys(job.workflow).some(key => job.workflow[key].bulb === 'red');
+        }
+
         function renderApp() {
             const searchInput = document.getElementById('searchBar').value.toLowerCase();
             
@@ -348,6 +453,7 @@
                 let matchTab = true;
                 if (currentFilter === 'finished') matchTab = job.isDone === true;
                 else if (currentFilter === 'unfinished') matchTab = !job.isDone;
+                else if (currentFilter === 'alerts') matchTab = hasAlertStatus(job); // 🔴 Alert filter condition
                 
                 const matchSearch = (job.title && job.title.toLowerCase().includes(searchInput)) || 
                                     (job.date && job.date.toLowerCase().includes(searchInput)) ||
@@ -391,6 +497,7 @@
                                         <span class="job-id-badge">#${job.id}</span>
                                         <input type="text" class="job-title-input ${job.isDone ? 'finished-title' : ''}" value="${job.title || ''}" placeholder="အော်ဒါအမည်" onchange="updateTitle(${job.id}, this.value)">
                                         ${job.isDone ? '<span class="finished-badge">FINISHED</span>' : ''}
+                                        ${hasAlertStatus(job) ? '<span class="finished-badge" style="background:#e53935;">⚠️ ALERT</span>' : ''}
                                     </div>
                                     <input type="text" class="job-date-input-manual" value="${job.date || ''}" placeholder="DD-MM-YYYY" onchange="updateDate(${job.id}, this.value)">
                                 </div>
@@ -402,7 +509,11 @@
                             <div class="more-details-btn" onclick="toggleDetails(${job.id}, this)">
                                 <span class="arrow">${isExpanded ? '▲' : '▼'}</span> <span class="text">${isExpanded ? 'Less' : 'More details'}</span>
                             </div>
-                            <button class="delete-btn" onclick="deleteJob(${job.id})">🗑️</button>
+                            <div class="footer-actions">
+                                <!-- 📄 Clone Button added here -->
+                                <button class="clone-btn" onclick="cloneExistingJob(${job.id})" title="Duplicate Job">📄 Clone</button>
+                                <button class="delete-btn" onclick="deleteJob(${job.id})">🗑️</button>
+                            </div>
                         </div>
 
                         <div class="workflow-details ${isExpanded ? 'active' : ''}">
@@ -521,6 +632,7 @@
                 body: JSON.stringify({ bulb: nextBulb })
             }).then(() => {
                 let statusText = nextBulb === 'red' ? 'Alert/Stop' : (nextBulb === 'green' ? 'Done' : 'Normal');
+                renderApp(); // Re-render to show/hide ⚠️ ALERT tags on top
                 writeActivityLog(id, job.title, `changed bulb status to **${statusText}** on [${label}]`);
             });
         }
@@ -722,6 +834,53 @@
                 jobsData.push(newJob);
                 renderApp();
                 writeActivityLog(nextId, newJob.title, `created a **new order**`);
+            });
+        }
+
+        /* 📄 Clone Engine Functionality */
+        function cloneExistingJob(sourceId) {
+            const sourceJob = jobsData.find(j => j && j.id === sourceId);
+            if (!sourceJob) return;
+
+            const d = new Date();
+            const todayStr = `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
+            
+            let maxId = 0;
+            jobsData.forEach(j => { if (j && j.id > maxId) maxId = j.id; });
+            const nextId = maxId + 1;
+
+            // Deep clone the workflow data structure cleanly
+            const clonedWorkflow = {};
+            if (sourceJob.workflow) {
+                Object.keys(sourceJob.workflow).forEach(stepKey => {
+                    const srcStep = sourceJob.workflow[stepKey];
+                    clonedWorkflow[stepKey] = {
+                        text: srcStep.text || "",
+                        staff: srcStep.staff || "",
+                        bulb: "black", // Default bulb to normal for the new cloned order
+                        color: "white"
+                    };
+                });
+            }
+
+            const clonedJob = {
+                id: nextId,
+                title: `${sourceJob.title || 'Untitled'} (Copy)`,
+                date: todayStr,
+                image: sourceJob.image || "", // Clone image too if exists
+                isDone: false,
+                workflow: clonedWorkflow
+            };
+
+            fetch(`${FIREBASE_URL}/jobs/${nextId}.json`, {
+                method: 'PUT',
+                body: JSON.stringify(clonedJob)
+            }).then(() => {
+                clonedJob.dbKey = nextId.toString();
+                jobsData.push(clonedJob);
+                renderApp();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                writeActivityLog(nextId, clonedJob.title, `📄 **cloned/duplicated** from Order #${sourceId}`);
             });
         }
 
