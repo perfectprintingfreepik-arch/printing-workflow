@@ -48,18 +48,18 @@
 
         /* Dashboard Popup Modal UI */
         .dashboard-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 500; padding: 15px; overflow-y: auto; }
-        .dashboard-content { background: white; border-radius: 16px; padding: 20px; width: 100%; max-width: 900px; margin: 20px auto; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        .dashboard-content { background: white; border-radius: 16px; padding: 20px; width: 100%; max-width: 950px; margin: 20px auto; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
         .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #eee; }
         .dashboard-close-btn { background: #e53935; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
         
-        /* Dashboard Internal Tabs style */
-        .dash-filter-tabs { display: flex; gap: 6px; margin-bottom: 15px; width: 100%; max-width: 320px; }
-        .dash-tab-btn { flex: 1; padding: 6px 10px; border: 1px solid #0284c7; background: white; color: #0284c7; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; text-align: center; }
+        /* Dashboard Internal Tabs Style (Matches Main Tab Layout) */
+        .dash-filter-tabs { display: flex; justify-content: center; gap: 4px; margin-bottom: 15px; width: 100%; max-width: 360px; }
+        .dash-tab-btn { flex: 1; padding: 8px 0; border: 2px solid #0284c7; background: white; color: #0284c7; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 12px; text-align: center; transition: all 0.2s; }
         .dash-tab-btn.active { background: #0284c7; color: white; }
 
         /* Dashboard Responsive Table */
         .table-wrapper { width: 100%; overflow-x: auto; background: white; border-radius: 8px; border: 1px solid #ddd; }
-        .dash-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; min-width: 750px; }
+        .dash-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; min-width: 850px; }
         .dash-table th, .dash-table td { padding: 10px 8px; border: 1px solid #ddd; }
         .dash-table th { background: #f4f6f9; color: #333; font-weight: bold; position: sticky; top: 0; }
         .dash-table tr:nth-child(even) { background: #f9f9f9; }
@@ -87,12 +87,20 @@
         .job-title-input { font-size: 16px; font-weight: bold; color: #333; border: none; outline: none; background: transparent; flex: 1; min-width: 100px; padding: 2px 0; }
         .job-title-input.finished-title { color: #0d47a1 !important; }
         .finished-badge { background-color: #2481cc; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; flex-shrink: 0; display: inline-block; }
-        .job-date-input-manual { font-size: 12px; color: #666; border: none; outline: none; background: transparent; width: 120px; padding: 2px 0; margin-top: 2px; }
+
+        /* Top Control Right (Alert + Finished Buttons Container) */
+        .top-control-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        
+        /* Top Alert On/Off Toggle Button */
+        .top-alert-toggle { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: bold; color: #666; cursor: pointer; user-select: none; border: 1px solid #ccc; padding: 3px 6px; border-radius: 6px; background: #fafafa; }
+        .top-alert-toggle.alert-active { background: #e53935; color: white; border-color: #e53935; }
+        .top-alert-checkbox { cursor: pointer; width: 13px; height: 13px; accent-color: #e53935; }
 
         /* Finished Button */
-        .status-circle { width: 24px; height: 24px; border: 2px solid #aaa; border-radius: 50%; cursor: pointer; margin-left: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background-color: white; }
+        .status-circle { width: 24px; height: 24px; border: 2px solid #aaa; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; background-color: white; }
         .status-circle.done { background-color: #2481cc; border-color: #2481cc; }
         .status-circle.done::after { content: ''; display: block; width: 6px; height: 11px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); margin-bottom: 2px; }
+        .job-date-input-manual { font-size: 12px; color: #666; border: none; outline: none; background: transparent; width: 120px; padding: 2px 0; margin-top: 2px; }
 
         /* Card Action Footer */
         .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 5px; position: relative; }
@@ -105,10 +113,12 @@
         .workflow-details { display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
         .workflow-details.active { display: block; }
         
-        /* Workflow Rows */
-        .workflow-row { display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid #f2f2f2; gap: 6px; }
-        .row-controls { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-        .bulb-btn { cursor: pointer; font-size: 16px; user-select: none; opacity: 0.4; filter: grayscale(100%); }
+        /* Workflow Rows (Normal look, won't turn red globally) */
+        .workflow-row { display: flex; align-items: center; padding: 6px; border-bottom: 1px solid #f2f2f2; gap: 6px; border-radius: 6px; margin-bottom: 3px; background-color: white; }
+        .row-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        
+        /* Done Light Toggle Style */
+        .bulb-btn { cursor: pointer; font-size: 15px; user-select: none; opacity: 0.3; filter: grayscale(100%); }
         .bulb-btn.active-bulb { opacity: 1 !important; filter: none !important; }
         
         /* Compact Staff Dropdown */
@@ -196,11 +206,13 @@
                 <button class="dashboard-close-btn" onclick="closeDashboardPopup()">✕ Close</button>
             </div>
 
-            <!-- 🎛️ Dashboard Internal Filters Added Here -->
-            <div class="dash-filter-tabs">
-                <button class="dash-tab-btn active" id="dash-tab-all" onclick="switchDashboardFilter('all')">All</button>
-                <button class="dash-tab-btn" id="dash-tab-unfinished" onclick="switchDashboardFilter('unfinished')">Unfinished</button>
-                <button class="dash-tab-btn" id="dash-tab-finished" onclick="switchDashboardFilter('finished')">Finished</button>
+            <!-- 🎛️ Dashboard Internal Filters Fixed (Matches main view style) -->
+            <div style="display:flex; justify-content:center; margin-bottom: 15px;">
+                <div class="dash-filter-tabs">
+                    <button class="dash-tab-btn active" id="dash-tab-all" onclick="switchDashboardFilter('all')">All</button>
+                    <button class="dash-tab-btn" id="dash-tab-unfinished" onclick="switchDashboardFilter('unfinished')">Unfinished</button>
+                    <button class="dash-tab-btn" id="dash-tab-finished" onclick="switchDashboardFilter('finished')">Finished</button>
+                </div>
             </div>
 
             <div class="table-wrapper">
@@ -240,9 +252,9 @@
     <script>
         // 🔒 USER PASSWORDS CONFIGURATION
         const USER_ACCOUNTS = {
-            "Myo Min": "8053", 
-            "Sharhid": "5415", 
-            "Ausmaan": "3776"  
+            "Myo Min": "1111", 
+            "Sharhid": "2222", 
+            "Ausmaan": "3333"  
         };
 
         const tg = window.Telegram.WebApp;
@@ -256,7 +268,7 @@
         const itemsPerPage = 10;
         let localExpandedState = {}; 
         let currentFilter = 'all'; 
-        let dashboardFilter = 'all'; // Default dashboard filter state
+        let dashboardFilter = 'all'; 
         let activePreviewJobId = null; 
         let currentUser = ""; 
 
@@ -365,9 +377,9 @@
             }
         }
 
-        /* 📊 Dashboard Core Logic with Filters */
+        /* 📊 Dashboard Filters Core Logic Fixed */
         function openDashboardPopup() {
-            dashboardFilter = 'all'; // Default back to all when newly opened
+            dashboardFilter = 'all'; 
             updateDashboardTabUI();
             renderDashboardTable();
             document.getElementById('dashboardPopupOverlay').style.display = 'block';
@@ -389,22 +401,21 @@
             const tbody = document.getElementById('dashboardTableBody');
             tbody.innerHTML = "";
             
-            // Sort by newest order first
             const sortedJobs = [...jobsData].sort((a,b) => b.id - a.id);
             
             sortedJobs.forEach(job => {
                 if(!job) return;
 
-                // Dashboard filter verification step
+                // Tab filters implementation for Dashboard
                 if (dashboardFilter === 'finished' && job.isDone !== true) return;
                 if (dashboardFilter === 'unfinished' && job.isDone === true) return;
                 
                 const getStepCell = (stepKey) => {
                     const step = (job.workflow && job.workflow[stepKey]) ? job.workflow[stepKey] : {};
                     let bg = 'white'; let color = '#333';
+                    
                     if (step.staff) bg = getStaffColor(step.staff);
-                    if (step.bulb === 'red') { bg = '#e53935'; color = 'white'; }
-                    else if (step.bulb === 'green') { bg = '#4caf50'; color = 'white'; }
+                    if (step.bulb === 'green') { bg = '#4caf50'; color = 'white'; }
                     
                     const labelStr = step.staff ? `<b>[${step.staff}]</b> ${step.text || ''}` : (step.text || '—');
                     return `<td style="background-color:${bg}; color:${color}; font-size:11px;">${labelStr}</td>`;
@@ -414,9 +425,12 @@
                     `<span class="dash-cell-badge" style="background:#2481cc; color:white;">DONE</span>` : 
                     `<span class="dash-cell-badge" style="background:#aaa; color:white;">PENDING</span>`;
 
+                // Highlight entire row context on dashboard if main alert is triggered
+                const rowAlertStyle = job.isAlert === true ? 'background-color: #ffeeeb;' : '';
+
                 const trHTML = `
-                    <tr>
-                        <td><b>#${job.id}</b></td>
+                    <tr style="${rowAlertStyle}">
+                        <td><b>#${job.id}</b> ${job.isAlert ? '⚠️' : ''}</td>
                         <td><b>${job.title || 'No Title'}</b></td>
                         ${getStepCell('paperType')}
                         ${getStepCell('ctp')}
@@ -472,11 +486,6 @@
             return "white";
         }
 
-        function hasAlertStatus(job) {
-            if (!job || !job.workflow) return false;
-            return Object.keys(job.workflow).some(key => job.workflow[key].bulb === 'red');
-        }
-
         function renderApp() {
             const searchInput = document.getElementById('searchBar').value.toLowerCase();
             
@@ -485,7 +494,7 @@
                 let matchTab = true;
                 if (currentFilter === 'finished') matchTab = job.isDone === true;
                 else if (currentFilter === 'unfinished') matchTab = !job.isDone;
-                else if (currentFilter === 'alerts') matchTab = hasAlertStatus(job);
+                else if (currentFilter === 'alerts') matchTab = job.isAlert === true;
                 
                 const matchSearch = (job.title && job.title.toLowerCase().includes(searchInput)) || 
                                     (job.date && job.date.toLowerCase().includes(searchInput)) ||
@@ -513,6 +522,8 @@
 
             jobsToDisplay.forEach(job => {
                 const isExpanded = localExpandedState[job.id] || false;
+                const isJobAlertActive = job.isAlert === true;
+
                 const cardHTML = `
                     <div class="job-card ${job.isDone ? 'finished-card' : ''}" id="card-${job.id}">
                         <div class="card-top">
@@ -529,12 +540,20 @@
                                         <span class="job-id-badge">#${job.id}</span>
                                         <input type="text" class="job-title-input ${job.isDone ? 'finished-title' : ''}" value="${job.title || ''}" placeholder="အော်ဒါအမည်" onchange="updateTitle(${job.id}, this.value)">
                                         ${job.isDone ? '<span class="finished-badge">FINISHED</span>' : ''}
-                                        ${hasAlertStatus(job) ? '<span class="finished-badge" style="background:#e53935;">⚠️ ALERT</span>' : ''}
+                                        ${isJobAlertActive ? '<span class="finished-badge" style="background:#e53935;">⚠️ ALERT</span>' : ''}
                                     </div>
                                     <input type="text" class="job-date-input-manual" value="${job.date || ''}" placeholder="DD-MM-YYYY" onchange="updateDate(${job.id}, this.value)">
                                 </div>
                             </div>
-                            <div class="status-circle ${job.isDone ? 'done' : ''}" onclick="toggleMainStatus(${job.id})"></div>
+                            
+                            <!-- 🎛️ Top Control Right Side (Alert switch beside Finished circle) -->
+                            <div class="top-control-right">
+                                <label class="top-alert-toggle ${isJobAlertActive ? 'alert-active' : ''}">
+                                    <input type="checkbox" class="top-alert-checkbox" ${isJobAlertActive ? 'checked' : ''} onchange="toggleMainAlert(${job.id}, this)">
+                                    Alert
+                                </label>
+                                <div class="status-circle ${job.isDone ? 'done' : ''}" onclick="toggleMainStatus(${job.id})"></div>
+                            </div>
                         </div>
 
                         <div class="card-footer">
@@ -572,24 +591,20 @@
             if (!job.workflow[key]) job.workflow[key] = { text: "", color: "white", bulb: "black", staff: "" };
             
             const item = job.workflow[key];
-            let activeBulbClass = (item.bulb === 'red' || item.bulb === 'green') ? 'active-bulb' : '';
+            const isDoneOn = item.bulb === 'green';
             
             let rowBgColor = 'white';
-            let textColor = '#333';
-            let selectBgColor = 'white';
-            
-            if (item.staff && item.staff !== "") {
+            if (item.staff) {
                 rowBgColor = getStaffColor(item.staff);
-                selectBgColor = getStaffColor(item.staff);
             }
-            if (item.bulb === 'red') { rowBgColor = '#e53935'; textColor = 'white'; }
-            else if (item.bulb === 'green') { rowBgColor = '#4caf50'; textColor = 'white'; }
             
             return `
-                <div class="workflow-row" id="row-${job.id}-${key}">
+                <div class="workflow-row" id="row-${job.id}-${key}" style="background-color: ${rowBgColor};">
                     <div class="row-controls">
-                        <span class="bulb-btn ${activeBulbClass}" onclick="toggleBulbLogic(${job.id}, '${key}', this, '${label}')">💡</span>
-                        <select class="staff-select" style="background-color: ${selectBgColor};" onchange="updateWorkflowStaff(${job.id}, '${key}', this, '${label}')">
+                        <!-- ✅ Done Toggle Icon -->
+                        <span class="bulb-btn ${isDoneOn ? 'active-bulb' : ''}" onclick="toggleDoneBulb(${job.id}, '${key}', this, '${label}')" title="Mark step as done">✔️</span>
+                        
+                        <select class="staff-select" onchange="updateWorkflowStaff(${job.id}, '${key}', this, '${label}')">
                             <option value="">—</option>
                             <option value="Sha" ${item.staff === 'Sha' ? 'selected' : ''}>Sha</option>
                             <option value="Aus" ${item.staff === 'Aus' ? 'selected' : ''}>Aus</option>
@@ -597,7 +612,7 @@
                         </select>
                     </div>
                     <span class="step-name">${label}</span>
-                    <input type="text" class="step-input" style="background-color: ${rowBgColor}; color: ${textColor};" value="${item.text || ''}" placeholder="—" onchange="updateWorkflowTextLive(${job.id}, '${key}', this.value, '${label}')">
+                    <input type="text" class="step-input" value="${item.text || ''}" placeholder="—" onchange="updateWorkflowTextLive(${job.id}, '${key}', this.value, '${label}')">
                 </div>
             `;
         }
@@ -608,63 +623,49 @@
 
             const staffName = selectEl.value;
             job.workflow[key].staff = staffName;
-            selectEl.style.backgroundColor = getStaffColor(staffName);
-
-            const rowEl = document.getElementById(`row-${id}-${key}`);
-            if(rowEl) {
-                const inputEl = rowEl.querySelector('.step-input');
-                if(job.workflow[key].bulb === 'black' || job.workflow[key].bulb === '') {
-                    inputEl.style.backgroundColor = getStaffColor(staffName);
-                    inputEl.style.color = '#333';
-                }
-            }
 
             fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
                 method: 'PATCH',
                 body: JSON.stringify({ staff: staffName })
             }).then(() => {
+                renderApp(); 
                 writeActivityLog(id, job.title, `assigned **${staffName || 'None'}** to [${label}]`);
             });
         }
 
-        function toggleBulbLogic(id, key, btnEl, label) {
+        /* 🚨 Toggle Main Alert (Beside finished button, changes only the alert button color) */
+        function toggleMainAlert(id, checkboxEl) {
+            const job = jobsData.find(j => j && j.id === id);
+            if (!job || !job.dbKey) return;
+
+            const shouldAlert = checkboxEl.checked;
+            job.isAlert = shouldAlert;
+
+            fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ isAlert: shouldAlert })
+            }).then(() => {
+                renderApp(); 
+                writeActivityLog(id, job.title, `turned Main Alert **${shouldAlert ? 'ON' : 'OFF'}**`);
+            });
+        }
+
+        /* ✔️ Done Check Logic inside row */
+        function toggleDoneBulb(id, key, btnEl, label) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job || !job.dbKey) return;
 
             let currentBulb = job.workflow[key].bulb || 'black';
-            let nextBulb = 'black';
-
-            if (currentBulb === 'black' || currentBulb === '') nextBulb = 'red';
-            else if (currentBulb === 'red') nextBulb = 'green';
-            else nextBulb = 'black';
+            let nextBulb = (currentBulb === 'green') ? 'black' : 'green';
 
             job.workflow[key].bulb = nextBulb;
-
-            const rowEl = document.getElementById(`row-${id}-${key}`);
-            if(rowEl) {
-                const inputEl = rowEl.querySelector('.step-input');
-                if(nextBulb === 'red') {
-                    btnEl.classList.add('active-bulb');
-                    inputEl.style.backgroundColor = '#e53935';
-                    inputEl.style.color = 'white';
-                } else if(nextBulb === 'green') {
-                    btnEl.classList.add('active-bulb');
-                    inputEl.style.backgroundColor = '#4caf50';
-                    inputEl.style.color = 'white';
-                } else {
-                    btnEl.classList.remove('active-bulb');
-                    inputEl.style.backgroundColor = getStaffColor(job.workflow[key].staff);
-                    inputEl.style.color = '#333';
-                }
-            }
 
             fetch(`${FIREBASE_URL}/jobs/${job.dbKey}/workflow/${key}.json`, {
                 method: 'PATCH',
                 body: JSON.stringify({ bulb: nextBulb })
             }).then(() => {
-                let statusText = nextBulb === 'red' ? 'Alert/Stop' : (nextBulb === 'green' ? 'Done' : 'Normal');
                 renderApp(); 
-                writeActivityLog(id, job.title, `changed bulb status to **${statusText}** on [${label}]`);
+                writeActivityLog(id, job.title, `marked step [${label}] as **${nextBulb === 'green' ? 'COMPLETED' : 'INCOMPLETE'}**`);
             });
         }
 
@@ -715,18 +716,11 @@
                     const job = jobsData.find(j => j && j.id === jobId);
                     if (job && job.dbKey) {
                         job.image = base64Image;
-                        const cardEl = document.getElementById(`card-${jobId}`);
-                        if(cardEl) {
-                            const thumbEl = cardEl.querySelector('.job-thumb');
-                            if(thumbEl) {
-                                thumbEl.style.backgroundImage = `url(${base64Image})`;
-                                thumbEl.querySelectorAll('span').forEach(s => s.style.display = 'none');
-                            }
-                        }
                         fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
                             method: 'PATCH',
                             body: JSON.stringify({ image: base64Image })
                         }).then(() => {
+                            renderApp();
                             writeActivityLog(jobId, job.title, `uploaded a new image`);
                         });
                     }
@@ -815,16 +809,11 @@
             const job = jobsData.find(j => j && j.id === id);
             if (job && job.dbKey) {
                 job.isDone = !job.isDone;
-                const cardEl = document.getElementById(`card-${id}`);
-                if(cardEl) {
-                    cardEl.classList.toggle('finished-card', job.isDone);
-                    const circle = cardEl.querySelector('.status-circle');
-                    if(circle) circle.classList.toggle('done', job.isDone);
-                }
                 fetch(`${FIREBASE_URL}/jobs/${job.dbKey}.json`, {
                     method: 'PATCH',
                     body: JSON.stringify({ isDone: job.isDone })
                 }).then(() => {
+                    renderApp();
                     writeActivityLog(id, job.title, `marked order as ${job.isDone ? '**FINISHED**' : '**UNFINISHED**'}`);
                 });
             }
@@ -843,6 +832,7 @@
                 date: todayStr,
                 image: "",
                 isDone: false,
+                isAlert: false,
                 workflow: {
                     paperType: { text: "", color: "white", bulb: "black", staff: "" }, 
                     ctp: { text: "", color: "white", bulb: "black", staff: "" }, 
@@ -898,6 +888,7 @@
                 date: todayStr,
                 image: sourceJob.image || "", 
                 isDone: false,
+                isAlert: false,
                 workflow: clonedWorkflow
             };
 
