@@ -88,10 +88,10 @@
         .job-title-input.finished-title { color: #0d47a1 !important; }
         .finished-badge { background-color: #2481cc; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; flex-shrink: 0; display: inline-block; }
 
-        /* Top Control Right (Alert + Finished Buttons Container) */
+        /* Top Control Right */
         .top-control-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
         
-        /* Top Alert On/Off Toggle Button */
+        /* Top Alert Toggle Button */
         .top-alert-toggle { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: bold; color: #666; cursor: pointer; user-select: none; border: 1px solid #ccc; padding: 3px 6px; border-radius: 6px; background: #fafafa; }
         .top-alert-toggle.alert-active { background: #e53935; color: white; border-color: #e53935; }
         .top-alert-checkbox { cursor: pointer; width: 13px; height: 13px; accent-color: #e53935; }
@@ -109,7 +109,7 @@
         .clone-btn { background: none; border: none; color: #0284c7; cursor: pointer; font-size: 14px; font-weight: bold; padding: 5px; opacity: 0.8; }
         .delete-btn { background: none; border: none; color: #e53935; cursor: pointer; font-size: 15px; padding: 5px; opacity: 0.7; }
         
-        /* Workflow Table */
+        /* Workflow Details */
         .workflow-details { display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
         .workflow-details.active { display: block; }
         
@@ -117,15 +117,16 @@
         .workflow-row { display: flex; align-items: center; padding: 6px; border-bottom: 1px solid #f2f2f2; gap: 6px; border-radius: 6px; margin-bottom: 3px; background-color: white; }
         .row-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
         
-        /* 💡 Original Bulb Toggle Style (Brought Back!) */
-        .bulb-btn { cursor: pointer; font-size: 16px; user-select: none; transition: transform 0.1s; display: inline-block; }
-        .bulb-btn:active { transform: scale(1.2); }
+        /* 💡 Bulb Button Style */
+        .bulb-btn { cursor: pointer; font-size: 16px; user-select: none; display: inline-block; }
         
         /* Compact Staff Dropdown */
         .staff-select { padding: 4px 2px; border: 1px solid #ccc; border-radius: 4px; font-size: 11px; font-weight: bold; width: 55px; outline: none; background-color: white; flex-shrink: 0; text-align: center; }
 
         .step-name { font-size: 13px; color: #555; width: 110px; font-weight: 500; padding-left: 2px; flex-shrink: 0; }
-        .step-input { flex: 1; min-width: 80px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; background: white; color: #333; outline: none; }
+        
+        /* 📝 Text Input Box Live Styles */
+        .step-input { flex: 1; min-width: 80px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; background: white; color: #333; outline: none; font-weight: bold; }
 
         /* Pagination Controls */
         .pagination { display: flex; justify-content: center; align-items: center; margin: 20px 0 30px 0; gap: 8px; }
@@ -133,7 +134,7 @@
         .page-btn.active { background: #2481cc; color: white; border-color: #2481cc; }
         .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        /* Image Preview Lightbox Overlay Modal */
+        /* Image Lightbox */
         .preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
         .preview-content { max-width: 100%; max-height: 70vh; border-radius: 8px; object-fit: contain; }
         .modal-controls { margin-top: 20px; display: flex; gap: 15px; width: 100%; justify-content: center; }
@@ -144,7 +145,7 @@
 </head>
 <body>
 
-    <!-- Multi-user Login Screen UI -->
+    <!-- Login Screen -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-box">
             <h3 style="margin-bottom:5px;">Perfect Print Flow</h3>
@@ -396,7 +397,7 @@
             document.getElementById('dash-tab-finished').classList.toggle('active', dashboardFilter === 'finished');
         }
 
-        /* 📊 Render Dashboard Table (Correctly shows Red🔴 and Green🟢 backgrounds!) */
+        /* 📊 Dashboard View Syncing with Input Background Styles */
         function renderDashboardTable() {
             const tbody = document.getElementById('dashboardTableBody');
             tbody.innerHTML = "";
@@ -413,10 +414,9 @@
                     const step = (job.workflow && job.workflow[stepKey]) ? job.workflow[stepKey] : {};
                     let bg = 'white'; let color = '#333';
                     
-                    // If bulb state exists, apply Red or Green colors
                     if (step.bulb === 'green') { 
                         bg = '#2e7d32'; color = 'white'; // Strong Green
-                    } else if (step.bulb === 'green-flash' || step.bulb === 'red') { 
+                    } else if (step.bulb === 'red') { 
                         bg = '#c62828'; color = 'white'; // Strong Red
                     } else if (step.staff) {
                         bg = getStaffColor(step.staff);
@@ -550,7 +550,6 @@
                                 </div>
                             </div>
                             
-                            <!-- 🎛️ Top Control Right Side (Alert switch beside Finished circle) -->
                             <div class="top-control-right">
                                 <label class="top-alert-toggle ${isJobAlertActive ? 'alert-active' : ''}">
                                     <input type="checkbox" class="top-alert-checkbox" ${isJobAlertActive ? 'checked' : ''} onchange="toggleMainAlert(${job.id}, this)">
@@ -590,23 +589,26 @@
             renderPaginationControls(totalPages);
         }
 
-        /* 💡 Render Workflow Row with Red/Green Bulb Toggle features */
+        /* 💡 Render Workflow Row with Custom Input background colors sync */
         function renderWorkflowRow(job, key, label) {
             if (!job.workflow) job.workflow = {};
             if (!job.workflow[key]) job.workflow[key] = { text: "", color: "white", bulb: "black", staff: "" };
             
             const item = job.workflow[key];
             
-            // 🔴 🟢 Determine Bulb emoji and background color according to its state
             let bulbEmoji = "⚫"; 
-            let rowBgColor = "white";
+            let rowBgColor = "white"; 
+            let inputStyle = "background-color: white; color: #333; border: 1px solid #ddd;"; // Default input box look
 
-            if (item.bulb === 'green') {
-                bulbEmoji = "🟢";
-                rowBgColor = "#e8f5e9"; // Light green row
-            } else if (item.bulb === 'green-flash' || item.bulb === 'red') {
+            // 🎨 Adjust Input block background and Text color live matching requirements!
+            if (item.bulb === 'red') {
                 bulbEmoji = "🔴";
                 rowBgColor = "#ffebee"; // Light red row
+                inputStyle = "background-color: #d32f2f; color: white; border: 1px solid #d32f2f;"; // Whole block red + white letters
+            } else if (item.bulb === 'green') {
+                bulbEmoji = "🟢";
+                rowBgColor = "#e8f5e9"; // Light green row
+                inputStyle = "background-color: #388e3c; color: white; border: 1px solid #388e3c;"; // Whole block green + white letters
             } else if (item.staff) {
                 rowBgColor = getStaffColor(item.staff);
             }
@@ -614,7 +616,7 @@
             return `
                 <div class="workflow-row" id="row-${job.id}-${key}" style="background-color: ${rowBgColor};">
                     <div class="row-controls">
-                        <!-- 💡 Bulb Icon Button (Cycles: Black -> Red -> Green -> Black) -->
+                        <!-- 💡 Bulb Icon Button (Cycles: Off⚫ -> Red🔴 -> Green🟢 -> Off⚫) -->
                         <span class="bulb-btn" onclick="cycleBulbState(${job.id}, '${key}', '${label}')" title="Change bulb state">${bulbEmoji}</span>
                         
                         <select class="staff-select" onchange="updateWorkflowStaff(${job.id}, '${key}', this, '${label}')">
@@ -625,7 +627,7 @@
                         </select>
                     </div>
                     <span class="step-name">${label}</span>
-                    <input type="text" class="step-input" value="${item.text || ''}" placeholder="—" onchange="updateWorkflowTextLive(${job.id}, '${key}', this.value, '${label}')">
+                    <input type="text" class="step-input" style="${inputStyle}" value="${item.text || ''}" placeholder="—" onchange="updateWorkflowTextLive(${job.id}, '${key}', this.value, '${label}')">
                 </div>
             `;
         }
@@ -662,7 +664,7 @@
             });
         }
 
-        /* 🔄 🔴 🟢 Bulb Core Cycle Logic (Black -> Red -> Green -> Off) */
+        /* 🔄 🔴 🟢 Bulb Cycle Engine with custom text box background color integration */
         function cycleBulbState(id, key, label) {
             const job = jobsData.find(j => j && j.id === id);
             if (!job || !job.dbKey) return;
@@ -672,13 +674,13 @@
             let logStatus = 'OFF';
 
             if (currentBulb === 'black') {
-                nextBulb = 'red'; // Turns Red 🔴
+                nextBulb = 'red'; // 1st click: Turns Red 🔴 (Full input red + white text)
                 logStatus = '🔴 RED (INCOMPLETE)';
-            } else if (currentBulb === 'red' || currentBulb === 'green-flash') {
-                nextBulb = 'green'; // Turns Green 🟢
+            } else if (currentBulb === 'red') {
+                nextBulb = 'green'; // 2nd click: Turns Green 🟢 (Full input green + white text)
                 logStatus = '🟢 GREEN (COMPLETED)';
             } else if (currentBulb === 'green') {
-                nextBulb = 'black'; // Turns Off ⚫
+                nextBulb = 'black'; // 3rd click: Reset to Off ⚫
                 logStatus = '⚫ OFF';
             }
 
