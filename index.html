@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfect Print Job Flow</title>
+    <!-- Telegram WebApp Script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
@@ -29,14 +30,18 @@
         .search-wrapper { display: flex; justify-content: center; margin-bottom: 12px; }
         .search-bar { width: 100%; max-width: 400px; padding: 10px 15px; border: 1px solid #ccc; border-radius: 20px; font-size: 14px; outline: none; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
 
+        /* Log Search Bar específica */
+        .log-search-bar { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; margin-bottom: 10px; outline: none; }
+
         /* Filter Tabs Line */
         .filter-tabs { display: flex; justify-content: center; gap: 6px; margin-bottom: 12px; }
         .tab-btn { flex: 1; max-width: 110px; padding: 8px 0; border: 2px solid #2481cc; background: white; color: #2481cc; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 13px; text-align: center; transition: all 0.2s; }
         .tab-btn.active { background: #2481cc; color: white; }
 
         /* Logs Panel UI */
-        .logs-panel { display: none; background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); max-height: 250px; overflow-y: auto; border: 1px solid #ddd; }
-        .log-item { font-size: 12px; padding: 4px 0; border-bottom: 1px dashed #eee; color: #555; line-height: 1.4; }
+        .logs-panel { display: none; background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); max-height: 320px; overflow-y: auto; border: 1px solid #ddd; }
+        .log-items-container { max-height: 200px; overflow-y: auto; }
+        .log-item { font-size: 12px; padding: 6px 0; border-bottom: 1px dashed #eee; color: #444; line-height: 1.4; }
 
         /* Job Card Layout */
         .job-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative; }
@@ -53,6 +58,10 @@
         /* Title & Date Section */
         .title-container { flex: 1; display: flex; flex-direction: column; min-width: 0; }
         .title-row { display: flex; align-items: center; gap: 6px; width: 100%; flex-wrap: wrap; }
+        
+        /* Job ID Badge */
+        .job-id-badge { background-color: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; border: 1px solid #bae6fd; flex-shrink: 0; }
+        
         .job-title-input { font-size: 16px; font-weight: bold; color: #333; border: none; outline: none; background: transparent; flex: 1; min-width: 100px; padding: 2px 0; }
         .job-title-input.finished-title { color: #0d47a1 !important; }
         .finished-badge { background-color: #2481cc; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; flex-shrink: 0; display: inline-block; }
@@ -101,6 +110,7 @@
 </head>
 <body>
 
+    <!-- Multi-user Login Screen UI -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-box">
             <h3 style="margin-bottom:5px;">Perfect Print Flow</h3>
@@ -118,6 +128,7 @@
         </div>
     </div>
 
+    <!-- Main Content App -->
     <div class="header-container">
         <div class="header">
             <div class="job-count" id="jobCount">0 jobs</div>
@@ -127,16 +138,19 @@
             </div>
         </div>
         
+        <!-- Logs Panel UI -->
         <div class="logs-panel" id="logsPanelElement">
             <div style="font-weight:bold; font-size:13px; margin-bottom:8px; display:flex; justify-content:space-between;">
                 <span>📋 ဆိုင်တွင်း လုပ်ဆောင်ချက်မှတ်တမ်းများ</span>
                 <span style="cursor:pointer; color:#888;" onclick="toggleLogsPanel()">✕ Close</span>
             </div>
-            <div id="logsContainer">စာရင်းများဆွဲယူနေသည်...</div>
+            <!-- 🔍 Log Search Input field Added here -->
+            <input type="text" class="log-search-bar" id="logSearchBar" placeholder="🔍 ဝန်ထမ်းအမည်၊ ဖိုင်အမည်၊ စာသားဖြင့်ရှာရန်..." oninput="filterActivityLogs()">
+            <div id="logsContainer" class="log-items-container">စာရင်းများဆွဲယူနေသည်...</div>
         </div>
 
         <div class="search-wrapper">
-            <input type="text" class="search-bar" id="searchBar" placeholder="🔍 စာသား သို့မဟုတ် ရက်စွဲဖြင့်ရှာဖွေရန်..." oninput="triggerSearch()">
+            <input type="text" class="search-bar" id="searchBar" placeholder="🔍 စာသား၊ နံပါတ် သို့မဟုတ် ရက်စွဲဖြင့်ရှာဖွေရန်..." oninput="triggerSearch()">
         </div>
         
         <div class="filter-tabs">
@@ -149,6 +163,7 @@
     <div id="jobListContainer"></div>
     <div class="pagination" id="paginationContainer"></div>
 
+    <!-- Image Lightbox Modal -->
     <div class="preview-modal" id="imagePreviewModal">
         <img src="" class="preview-content" id="modalPreviewImg" alt="Preview">
         <div class="modal-controls">
@@ -159,11 +174,11 @@
     </div>
 
     <script>
-        // 🔒 USERPASSWORDS CONFIGURATION (အစ်ကို့စိတ်ကြိုက် ပြောင်းလဲနိုင်ပါသည်)
+        // 🔒 USER PASSWORDS CONFIGURATION
         const USER_ACCOUNTS = {
-            "Myo Min": "8053", // အစ်ကို့ (Admin) Password
-            "Sharhid": "5415", // Sharhid Password
-            "Ausmaan": "3776"  // Ausmaan Password
+            "Myo Min": "8053", 
+            "Sharhid": "5415", 
+            "Ausmaan": "3776"  
         };
 
         const tg = window.Telegram.WebApp;
@@ -172,14 +187,14 @@
         const FIREBASE_URL = "https://printing-workflow-43d91-default-rtdb.asia-southeast1.firebasedatabase.app"; 
 
         let jobsData = [];
+        let allLogsCached = []; // Global array to keep logs data for live searching
         let currentPage = 1;
         const itemsPerPage = 10;
         let localExpandedState = {}; 
         let currentFilter = 'all'; 
         let activePreviewJobId = null; 
-        let currentUser = ""; // လက်ရှိဝင်ထားသော User သိမ်းရန်
+        let currentUser = ""; 
 
-        // 🔄 Session Login Verification 
         function checkSecurityLock() {
             const savedUser = sessionStorage.getItem("loggedInUser");
             if (savedUser && USER_ACCOUNTS[savedUser]) {
@@ -209,7 +224,6 @@
             }
         }
 
-        // Admin ဖြစ်မှသာ Log ကြည့်ခွင့်ခလုတ် ပေါ်စေမည့်စနစ်
         function setupUserInterfacePrivileges() {
             if (currentUser === "Myo Min") {
                 document.getElementById('logToggleBtn').style.display = 'block';
@@ -230,14 +244,14 @@
             }
         }
 
-        // 📜 Write Log to Firebase Action
-        function writeActivityLog(message) {
+        function writeActivityLog(jobId, jobTitle, actionMessage) {
             const d = new Date();
-            // မြန်မာစံတော်ချိန် တွက်ချက်မှုပုံစံလေး ထည့်သွင်းထားပါသည်
             const timestamp = `${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-            const logEntry = {
-                text: `[${timestamp}] - **${currentUser}** ${message}`
-            };
+            
+            const cleanTitle = jobTitle ? jobTitle : "No Name";
+            const message = `[${timestamp}] - **${currentUser}** ${actionMessage} on **Order #${jobId} (${cleanTitle})**`;
+            
+            const logEntry = { text: message };
             fetch(`${FIREBASE_URL}/logs.json`, {
                 method: 'POST',
                 body: JSON.stringify(logEntry)
@@ -248,13 +262,36 @@
             fetch(`${FIREBASE_URL}/logs.json`)
             .then(res => res.json())
             .then(data => {
-                const container = document.getElementById('logsContainer');
-                if (!data) { container.innerHTML = "မှတ်တမ်းမရှိသေးပါ။"; return; }
-                container.innerHTML = "";
-                Object.keys(data).reverse().forEach(key => { // အသစ်တွေကို အပေါ်ဆုံးပြရန် reverse လုပ်သည်
-                    container.insertAdjacentHTML('beforeend', `<div class="log-item">${data[key].text}</div>`);
-                });
+                allLogsCached = [];
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        allLogsCached.push(data[key]);
+                    });
+                    allLogsCached.reverse(); // Newest logs first
+                }
+                displayLogs(allLogsCached);
             });
+        }
+
+        function displayLogs(logsArray) {
+            const container = document.getElementById('logsContainer');
+            if (logsArray.length === 0) { 
+                container.innerHTML = "မှတ်တမ်းရှာမတွေ့ပါ။"; 
+                return; 
+            }
+            container.innerHTML = "";
+            logsArray.forEach(log => {
+                container.insertAdjacentHTML('beforeend', `<div class="log-item">${log.text}</div>`);
+            });
+        }
+
+        // Live Log Filtering Engine
+        function filterActivityLogs() {
+            const searchText = document.getElementById('logSearchBar').value.toLowerCase();
+            const filtered = allLogsCached.filter(log => {
+                return log.text && log.text.toLowerCase().includes(searchText);
+            });
+            displayLogs(filtered);
         }
 
         function toggleLogsPanel() {
@@ -263,6 +300,7 @@
                 panel.style.display = 'none';
             } else {
                 panel.style.display = 'block';
+                document.getElementById('logSearchBar').value = ""; // Clear search when re-opening
                 fetchLogsFromServer();
             }
         }
@@ -296,9 +334,9 @@
         }
 
         function getStaffColor(name) {
-            if (name === "Sha") return "#ffc0cb"; // Soft Pink
-            if (name === "Aus") return "#fff176"; // Soft Yellow
-            if (name === "Myo") return "#d3d3d3"; // Light Grey
+            if (name === "Sha") return "#ffc0cb"; 
+            if (name === "Aus") return "#fff176"; 
+            if (name === "Myo") return "#d3d3d3"; 
             return "white";
         }
 
@@ -312,7 +350,8 @@
                 else if (currentFilter === 'unfinished') matchTab = !job.isDone;
                 
                 const matchSearch = (job.title && job.title.toLowerCase().includes(searchInput)) || 
-                                    (job.date && job.date.toLowerCase().includes(searchInput));
+                                    (job.date && job.date.toLowerCase().includes(searchInput)) ||
+                                    (job.id && job.id.toString().includes(searchInput));
                 return matchTab && matchSearch;
             });
 
@@ -349,6 +388,7 @@
                                 </div>
                                 <div class="title-container">
                                     <div class="title-row">
+                                        <span class="job-id-badge">#${job.id}</span>
                                         <input type="text" class="job-title-input ${job.isDone ? 'finished-title' : ''}" value="${job.title || ''}" placeholder="အော်ဒါအမည်" onchange="updateTitle(${job.id}, this.value)">
                                         ${job.isDone ? '<span class="finished-badge">FINISHED</span>' : ''}
                                     </div>
@@ -426,7 +466,6 @@
 
             const staffName = selectEl.value;
             job.workflow[key].staff = staffName;
-
             selectEl.style.backgroundColor = getStaffColor(staffName);
 
             const rowEl = document.getElementById(`row-${id}-${key}`);
@@ -442,7 +481,7 @@
                 method: 'PATCH',
                 body: JSON.stringify({ staff: staffName })
             }).then(() => {
-                writeActivityLog(`assigned **${staffName || 'None'}** to [${label}] on Order #${id}`);
+                writeActivityLog(id, job.title, `assigned **${staffName || 'None'}** to [${label}]`);
             });
         }
 
@@ -482,7 +521,7 @@
                 body: JSON.stringify({ bulb: nextBulb })
             }).then(() => {
                 let statusText = nextBulb === 'red' ? 'Alert/Stop' : (nextBulb === 'green' ? 'Done' : 'Normal');
-                writeActivityLog(`changed bulb status to **${statusText}** on [${label}] of Order #${id}`);
+                writeActivityLog(id, job.title, `changed bulb status to **${statusText}** on [${label}]`);
             });
         }
 
@@ -545,7 +584,7 @@
                             method: 'PATCH',
                             body: JSON.stringify({ image: base64Image })
                         }).then(() => {
-                            writeActivityLog(`uploaded a new image for Order #${jobId}`);
+                            writeActivityLog(jobId, job.title, `uploaded a new image`);
                         });
                     }
                 };
@@ -597,7 +636,7 @@
                     method: 'PATCH',
                     body: JSON.stringify({ text: value })
                 }).then(() => {
-                    writeActivityLog(`updated text to "${value}" on [${label}] of Order #${id}`);
+                    writeActivityLog(id, job.title, `updated text to "${value}" on [${label}]`);
                 });
             }
         }
@@ -611,7 +650,7 @@
                     method: 'PATCH',
                     body: JSON.stringify({ title: value })
                 }).then(() => {
-                    writeActivityLog(`changed Order #${id} title from "${oldTitle}" to "${value}"`);
+                    writeActivityLog(id, value, `changed title from "${oldTitle}" to "${value}"`);
                 });
             }
         }
@@ -624,7 +663,7 @@
                     method: 'PATCH',
                     body: JSON.stringify({ date: value })
                 }).then(() => {
-                    writeActivityLog(`updated date of Order #${id} to ${value}`);
+                    writeActivityLog(id, job.title, `updated date to ${value}`);
                 });
             }
         }
@@ -643,7 +682,7 @@
                     method: 'PATCH',
                     body: JSON.stringify({ isDone: job.isDone })
                 }).then(() => {
-                    writeActivityLog(`marked Order #${id} as ${job.isDone ? '**FINISHED**' : '**UNFINISHED**'}`);
+                    writeActivityLog(id, job.title, `marked order as ${job.isDone ? '**FINISHED**' : '**UNFINISHED**'}`);
                 });
             }
         }
@@ -682,7 +721,7 @@
                 newJob.dbKey = nextId.toString();
                 jobsData.push(newJob);
                 renderApp();
-                writeActivityLog(`created a **new order** #${nextId}`);
+                writeActivityLog(nextId, newJob.title, `created a **new order**`);
             });
         }
 
@@ -695,12 +734,11 @@
                 }).then(() => {
                     jobsData = jobsData.filter(j => j && j.id !== id);
                     renderApp();
-                    writeActivityLog(`❌ **deleted** Order #${id}`);
+                    writeActivityLog(id, job.title, `❌ **deleted** the order`);
                 });
             }
         }
 
-        // စနစ်ကို စတင်စစ်ဆေးခြင်း
         checkSecurityLock();
     </script>
 </body>
