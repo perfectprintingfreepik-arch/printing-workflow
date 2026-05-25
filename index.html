@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -93,12 +94,13 @@
         .dash-search-bar { width: 100%; max-width: 280px; padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 20px; font-size: 13px; outline: none; transition: all 0.2s; background: white; }
         .dash-search-bar:focus { border-color: #0284c7; box-shadow: 0 0 0 3px rgba(2,132,199,0.15); }
 
-        /* Dashboard Table */
+        /* Dashboard Table (Restored to User Original Layout) */
         .table-wrapper { width: 100%; overflow-x: auto; background: white; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .dash-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; min-width: 1000px; }
+        .dash-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; min-width: 900px; }
         .dash-table th, .dash-table td { padding: 12px 10px; border: 1px solid #e2e8f0; }
         .dash-table th { background: #f8fafc; color: #475569; font-weight: bold; }
         .dash-table tr:nth-child(even) { background: #f8fafc; }
+        .dash-cell-badge { padding: 3px 6px; border-radius: 4px; font-weight: bold; display: inline-block; font-size: 11px; }
 
         /* Job Card Layout */
         .job-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.01); position: relative; border: 1px solid rgba(226,232,240,0.7); transition: transform 0.2s, box-shadow 0.2s; }
@@ -243,8 +245,8 @@
                     </div>
                 </div>
 
-                <button class="add-btn" id="adminNoteToggleBtn" style="background:#0284c7; display:none;" onclick="toggleAdminNoteSection()">📝 Note ရေးရန်</button>
-                <button class="add-btn" id="userNoteToggleBtn" style="background:#0284c7; display:none;" onclick="showUserNotePopup()">📌 Note ကြည့်ရန်</button>
+                <button class="add-btn" id="adminNoteToggleBtn" style="background:#0284c7; display:none;" onclick="toggleAdminNoteSection()">📝 Note</button>
+                <button class="add-btn" id="userNoteToggleBtn" style="background:#0284c7; display:none;" onclick="showUserNotePopup()">📝 Note</button>
 
                 <button class="dashboard-toggle-btn" id="dashboardToggleBtn" onclick="openDashboardPopup()">📊 Dashboard</button>
                 <button class="log-toggle-btn" id="logToggleBtn" onclick="toggleLogsPanel()">📜 Logs</button>
@@ -255,9 +257,9 @@
         <div class="admin-note-section" id="adminNoteSection">
             <div class="admin-note-header">
                 <span style="font-weight:bold; font-size:13px; color:#334155;">📌 Admin အရေးကြီးမှတ်စု ရေးရန်</span>
-                <button style="background:none; border:none; color:#ef4444; font-weight:bold; cursor:pointer; font-size:12px;" onclick="toggleAdminNoteSection()">✕ Close Note</button>
+                <button style="background:none; border:none; color:#ef4444; font-weight:bold; cursor:pointer; font-size:12px;" onclick="toggleAdminNoteSection()">✕ Close</button>
             </div>
-            <textarea class="admin-note-textarea" id="adminNoteTextarea" placeholder="လိုအပ်တာတွေ ဤနေရာတွင် ရေးသားထားနိုင်ပါသည်..." oninput="saveAdminNoteToServer(this.value)"></textarea>
+            <textarea class="admin-note-textarea" id="adminNoteTextarea" placeholder="လိုအပ်တာတွေ ဤနေရာတွင် ရေးသားထားနိုင်ပါသည်..." onchange="saveAdminNoteToServer(this.value)"></textarea>
         </div>
         
         <div class="logs-panel" id="logsPanelElement">
@@ -336,7 +338,7 @@
     </div>
 
     <script>
-        const USER_ACCOUNTS = { "Myo Min": "8053", "Sharhid": "5415", "Ausmaan": "3776" };
+        const USER_ACCOUNTS = { "Myo Min": "1111", "Sharhid": "2222", "Ausmaan": "3333" };
         const FIREBASE_URL = "https://printing-workflow-43d91-default-rtdb.asia-southeast1.firebasedatabase.app"; 
 
         // 11 Workflow Rows Setup Array
@@ -345,11 +347,11 @@
             {key: 'press', label: 'Press'}, {key: 'lamination', label: 'Lamination'}, 
             {key: 'dieframe', label: 'Die Frame Mould'}, {key: 'diecut', label: 'Die Cut'}, 
             {key: 'cutting', label: 'Cutting'}, {key: 'binding', label: 'Binding'},
-            {key: 'zinc', label: 'Zinc and Remark'}, {key: 'goldfoil', label: 'Gold Foil Press'},
+            {key: 'zinc', label: 'Zinc or Remark'}, {key: 'goldfoil', label: 'Gold Foil Press'},
             {key: 'quantity', label: 'Quantity'}
         ];
 
-        // 3-Letter Staff names + A+S for Workflow Dropdowns
+        // 3-Letter Staff names + A+S for Workflow Dropdowns ONLY
         const STAFF_OPTIONS = ["Myo", "Sha", "Aus", "A+S"];
 
         let jobsData = [];
@@ -521,7 +523,7 @@
             document.getElementById('fbNotiDropdown').style.display = 'none';
         }
 
-        // --- Data Logic ---
+        // --- Data Logic (Optimistic Updates included to fix text disappearance) ---
         function handleFirebaseData(data) {
             jobsData = [];
             if(data) {
@@ -680,13 +682,23 @@
             });
         }
 
+        // Optimistic Update Function to Fix Text Disappearing Bug
         function updateField(id, path, val) {
-            fetch(`${FIREBASE_URL}/jobs/${id}/${path}.json`, { method: 'PUT', body: JSON.stringify(val) }).then(() => {
-                const job = jobsData.find(j => j.id == id);
-                if(job) {
-                    if(!path.includes('/')) { job[path] = val; } 
-                    else { const parts = path.split('/'); if(parts.length === 3) job.workflow[parts[1]][parts[2]] = val; }
+            // Optimistic update locally first
+            const job = jobsData.find(j => j.id == id);
+            if(job) {
+                if(!path.includes('/')) { job[path] = val; } 
+                else {
+                    const parts = path.split('/');
+                    if(parts.length === 3) {
+                        if (!job.workflow) job.workflow = {};
+                        if (!job.workflow[parts[1]]) job.workflow[parts[1]] = {};
+                        job.workflow[parts[1]][parts[2]] = val;
+                    }
                 }
+            }
+            
+            fetch(`${FIREBASE_URL}/jobs/${id}/${path}.json`, { method: 'PUT', body: JSON.stringify(val) }).then(() => {
                 if(path === 'title') { writeActivityLog(id, val, `updated title to "${val}"`); checkAndGenerateAIAlerts(); }
             });
         }
@@ -711,22 +723,28 @@
             fetch(`${FIREBASE_URL}/jobs/${id}/isAlertActive.json`, { method: 'PUT', body: JSON.stringify(newState) }).then(() => {
                 const job = jobsData.find(j => j.id == id);
                 if(job) job.isAlertActive = newState;
-                writeActivityLog(id, job?job.title:'', newState ? "activated WARNING ALERT glow" : "removed warning alert");
+                writeActivityLog(id, job?job.title:'', newState ? "activated WARNING ALERT" : "removed warning alert");
                 renderApp(); checkAndGenerateAIAlerts();
             });
         }
 
-        // New Bulb Logic (Red -> Green -> Original)
+        // New Bulb Logic (Red -> Green -> Original) with Optimistic UI Update
         function cycleBulb(id, stepKey, currentBulb) {
             let next = "white";
             if(currentBulb === "white") next = "red";
             else if(currentBulb === "red") next = "green";
             
+            // Optimistic update
+            const job = jobsData.find(j => j.id == id);
+            if(job && job.workflow) {
+                if(!job.workflow[stepKey]) job.workflow[stepKey] = {};
+                job.workflow[stepKey].bulb = next;
+            }
+            // Immediately render so text doesn't vanish
+            renderApp();
+            
             fetch(`${FIREBASE_URL}/jobs/${id}/workflow/${stepKey}/bulb.json`, { method: 'PUT', body: JSON.stringify(next) }).then(() => {
-                const job = jobsData.find(j => j.id == id);
-                if(job && job.workflow && job.workflow[stepKey]) job.workflow[stepKey].bulb = next;
                 writeActivityLog(id, job?job.title:'', `changed [${stepKey.toUpperCase()}] status indicator color to ${next.toUpperCase()}`);
-                renderApp();
             });
         }
 
