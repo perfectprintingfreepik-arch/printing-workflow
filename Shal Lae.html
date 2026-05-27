@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfect Print Job Flow - Premium UI</title>
+    <style>
+        /* Smooth Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        body { background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); min-height: 100vh; padding: 15px; color: #1e293b; }
+        
+        /* Login Overlay Screen */
+        .login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: linear-gradient(135deg, #2481cc 0%, #1d6fa8 100%); z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        .login-box { background: rgba(255, 255, 255, 0.95); padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); text-align: center; width: 90%; max-width: 340px; color: #334155; backdrop-filter: blur(10px); }
+        .login-select { width: 100%; padding: 12px; font-size: 16px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 10px; outline: none; font-weight: bold; color: #334155; }
+        .login-input { width: 100%; padding: 12px; text-align: center; font-size: 18px; border: 2px solid #cbd5e1; border-radius: 10px; margin-bottom: 15px; outline: none; transition: border 0.2s; }
+        .login-input:focus { border-color: #2481cc; }
+        .login-btn { background: #2481cc; color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: transform 0.1s; }
+        .login-btn:active { transform: scale(0.98); }
+        .login-error { color: #e53935; font-size: 13px; font-weight: bold; margin-top: 5px; display: none; }
+
+        /* Fixed Header Section */
+        .header-container { background: rgba(241, 245, 249, 0.9); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; padding-bottom: 12px; border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-top: 5px; }
+        .job-count { font-size: 15px; font-weight: 700; color: #475569; background: #e2e8f0; padding: 4px 10px; border-radius: 20px; }
+        .header-right { display: flex; gap: 8px; align-items: center; }
+        
+        /* Modern Button Styles */
+        .add-btn { background: linear-gradient(135deg, #2481cc 0%, #1d6fa8 100%); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; box-shadow: 0 2px 4px rgba(36,129,204,0.2); transition: all 0.2s; }
+        .add-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(36,129,204,0.3); }
+        .add-btn:active { transform: translateY(0); }
+        
+        .log-toggle-btn { background-color: #334155; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; transition: all 0.2s; display: none; }
+        .dashboard-toggle-btn { background-color: #0284c7; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; transition: all 0.2s; display: none; }
+        .log-toggle-btn:hover, .dashboard-toggle-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* Admin Note UI Section */
+        .admin-note-section { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: none; }
+        .admin-note-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .admin-note-textarea { width: 100%; height: 60px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; font-size: 13px; resize: none; color: #334155; font-weight: 500; }
+        .admin-note-textarea:focus { border-color: #2481cc; }
+
+        /* User Note Popup Modal */
+        .note-popup-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); backdrop-filter:blur(3px); z-index:20000; justify-content:center; align-items:center; padding:20px; }
+        .note-popup-box { background:white; padding:22px; border-radius:16px; max-width:400px; width:100%; box-shadow:0 20px 25px -5px rgba(0,0,0,0.15); animation:slideUp 0.25s ease-out; }
+        .note-popup-content { font-size:14px; color:#334155; white-space:pre-wrap; background:#f8fafc; padding:14px; border-radius:10px; max-height:220px; overflow-y:auto; font-weight:600; line-height:1.5; border-left:4px solid #0284c7; }
+
+        /* Facebook-Style Notification System */
+        .fb-noti-bell { position: relative; cursor: pointer; background: #e4e6eb; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .fb-noti-bell:hover { background: #d8dadf; }
+        .fb-noti-badge { position: absolute; top: -4px; right: -4px; background: #e41e3f; color: white; font-size: 11px; font-weight: bold; padding: 1px 5px; border-radius: 10px; border: 2px solid #fff; }
+        .fb-noti-dropdown { display: none; position: absolute; top: 40px; right: 0; width: 320px; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #cbd5e1; z-index: 1000; overflow: hidden; animation: fadeIn 0.2s; }
+        .fb-noti-header { padding: 12px; font-weight: bold; font-size: 15px; border-bottom: 1px solid #f0f2f5; display: flex; justify-content: space-between; align-items: center; }
+        .fb-noti-list { max-height: 250px; overflow-y: auto; }
+        .fb-noti-item { display: flex; gap: 10px; padding: 10px 12px; border-bottom: 1px solid #f0f2f5; font-size: 12.5px; line-height: 1.4; cursor: pointer; color: #1c1e21; transition: background 0.2s; }
+        .fb-noti-item:hover { background: #f0f2f5; }
+        .fb-noti-icon { color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; }
+        .fb-noti-empty { padding: 20px; text-align: center; color: #65676b; font-size: 13px; }
+
+        /* Modern Search Bar */
+        .search-wrapper { display: flex; justify-content: center; margin-bottom: 12px; }
+        .search-bar { width: 100%; max-width: 400px; padding: 11px 18px; border: 1px solid #cbd5e1; border-radius: 25px; font-size: 14px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.2s; background: white; }
+        .search-bar:focus { border-color: #2481cc; box-shadow: 0 0 0 3px rgba(36,129,204,0.15); }
+
+        /* Filter Tabs */
+        .filter-tabs { display: flex; justify-content: center; gap: 6px; margin-bottom: 5px; width: 100%; }
+        .tab-btn { flex: 1; padding: 9px 0; border: 1px solid #cbd5e1; background: white; color: #64748b; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 12px; text-align: center; transition: all 0.2s; }
+        .tab-btn:hover { background: #f8fafc; color: #334155; }
+        .tab-btn.active { background: #2481cc; color: white; border-color: #2481cc; box-shadow: 0 2px 4px rgba(36,129,204,0.2); }
+        .tab-btn.alert-tab { color: #ef4444; border-color: #fee2e2; background: #fff5f5; }
+        .tab-btn.alert-tab.active { background: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 2px 4px rgba(239,68,68,0.2); }
+
+        /* Logs Panel UI */
+        .logs-panel { display: none; background: white; border-radius: 16px; padding: 15px; margin-bottom: 15px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); max-height: 320px; overflow-y: auto; border: 1px solid #e2e8f0; animation: fadeIn 0.2s ease-out; }
+        .log-search-bar { width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; margin-bottom: 10px; outline: none; }
+        .log-items-container { max-height: 200px; overflow-y: auto; }
+        .log-item { font-size: 12px; padding: 8px 4px; border-bottom: 1px dashed #e2e8f0; color: #475569; line-height: 1.4; }
+
+        /* Dashboard Popup Modal UI */
+        .dashboard-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 500; padding: 15px; overflow-y: auto; }
+        .dashboard-content { background: white; border-radius: 20px; padding: 20px; width: 100%; max-width: 950px; margin: 20px auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); animation: slideUp 0.3s ease-out; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #f1f5f9; }
+        .dashboard-close-btn { background: #ef4444; color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        .dash-filter-tabs { display: flex; justify-content: center; gap: 4px; width: 100%; max-width: 360px; }
+        .dash-tab-btn { flex: 1; padding: 8px 0; border: 1px solid #cbd5e1; background: white; color: #64748b; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 12px; text-align: center; transition: all 0.2s; }
+        .dash-tab-btn.active { background: #0284c7; color: white; border-color: #0284c7; }
+        
+        .dash-search-bar { width: 100%; max-width: 280px; padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 20px; font-size: 13px; outline: none; transition: all 0.2s; background: white; }
+        .dash-search-bar:focus { border-color: #0284c7; box-shadow: 0 0 0 3px rgba(2,132,199,0.15); }
+
+        /* Dashboard Table */
+        .table-wrapper { width: 100%; overflow-x: auto; background: white; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .dash-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; min-width: 1000px; }
+        .dash-table th, .dash-table td { padding: 12px 10px; border: 1px solid #e2e8f0; }
+        .dash-table th { background: #f8fafc; color: #475569; font-weight: bold; }
+        .dash-table tr:nth-child(even) { background: #f8fafc; }
+
+        /* Job Card Layout */
+        .job-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.01); position: relative; border: 1px solid rgba(226,232,240,0.7); transition: transform 0.2s, box-shadow 0.2s; }
+        .job-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); }
+        .job-card.finished-card { background: linear-gradient(180deg, #ffffff 0%, #f0f7ff 100%) !important; border-color: #bae6fd; }
+        
+        /* Pulse Glow Animation for Alerts */
+        @keyframes alertPulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); border-color: #fca5a5; background-color: #fff5f5; }
+            50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.2); border-color: #ef4444; background-color: #fee2e2; }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); border-color: #fca5a5; background-color: #fff5f5; }
+        }
+        .job-card.alert-pulse-card { animation: alertPulse 1.5s infinite ease-in-out !important; border: 2px solid #ef4444 !important; }
+
+        .card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .job-info { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+        
+        /* Image Upload Thumbnail */
+        .image-upload-container { position: relative; width: 54px; height: 54px; flex-shrink: 0; }
+        .file-input { display: none; }
+        .job-thumb { width: 54px; height: 54px; background: #f1f5f9; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #94a3b8; text-align: center; border: 2px dashed #cbd5e1; cursor: pointer; overflow: hidden; background-size: cover; background-position: center; background-repeat: no-repeat; transition: all 0.2s; }
+        .job-thumb:hover { border-color: #2481cc; background: #e2e8f0; }
+        .job-thumb .plus-icon { font-size: 20px; font-weight: bold; color: #64748b; margin-bottom: -2px; }
+        
+        /* Title Box */
+        .title-container { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .title-row { display: flex; align-items: center; gap: 6px; width: 100%; flex-wrap: wrap; }
+        
+        .job-id-badge { background-color: #f1f5f9; color: #475569; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; border: 1px solid #e2e8f0; flex-shrink: 0; }
+        .job-card.finished-card .job-id-badge { background-color: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
+        
+        .job-title-input { font-size: 15px; font-weight: 700; color: #1e293b; border: 1px solid transparent; outline: none; background: transparent; flex: 1; min-width: 120px; padding: 2px 4px; border-radius: 4px; transition: background 0.2s; }
+        .job-title-input:focus { background: #f1f5f9; border-color: #cbd5e1; }
+        .job-title-input.finished-title { color: #0369a1 !important; }
+        
+        .finished-badge { background: linear-gradient(135deg, #2481cc 0%, #1d6fa8 100%); color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+        .alert-badge { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+
+        /* Controls Style */
+        .top-control-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+        .top-alert-toggle { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: bold; color: #64748b; cursor: pointer; user-select: none; border: 1px solid #cbd5e1; padding: 4px 8px; border-radius: 8px; background: white; transition: all 0.2s; }
+        .top-alert-toggle:hover { background: #fff5f5; border-color: #fecaca; color: #ef4444; }
+        .top-alert-toggle.alert-active { background: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 2px 4px rgba(239,68,68,0.2); }
+        .top-alert-checkbox { cursor: pointer; width: 13px; height: 13px; accent-color: #ef4444; }
+
+        .status-circle { width: 26px; height: 26px; border: 2px solid #cbd5e1; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; background-color: white; transition: all 0.2s; }
+        .status-circle:hover { border-color: #2481cc; transform: scale(1.05); }
+        .status-circle.done { background: linear-gradient(135deg, #2481cc 0%, #1d6fa8 100%); border-color: #2481cc; box-shadow: 0 2px 4px rgba(36,129,204,0.2); }
+        .status-circle.done::after { content: ''; display: block; width: 5px; height: 9px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); margin-bottom: 2px; }
+        .job-date-input-manual { font-size: 12px; color: #64748b; border: none; outline: none; background: transparent; width: 120px; padding: 2px 4px; margin-top: 2px; }
+
+        /* Card Action Footer */
+        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 4px; position: relative; }
+        .more-details-btn { color: #64748b; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; user-select: none; margin: 0 auto; background: #f1f5f9; padding: 4px 12px; border-radius: 20px; transition: all 0.2s; }
+        .more-details-btn:hover { background: #e2e8f0; color: #1e293b; }
+        .footer-actions { display: flex; gap: 6px; align-items: center; position: absolute; right: 0; top: -2px; }
+        .clone-btn { background: none; border: none; color: #0284c7; cursor: pointer; font-size: 13px; font-weight: bold; padding: 5px; opacity: 0.8; transition: transform 0.1s; }
+        .delete-btn { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 14px; padding: 5px; opacity: 0.7; transition: transform 0.1s; }
+        .clone-btn:hover, .delete-btn:hover { opacity: 1; transform: scale(1.1); }
+        
+        /* Workflow Accordion & Row */
+        .workflow-details { max-height: 0; overflow: hidden; transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), margin-top 0.35s; margin-top: 0; opacity: 0; transition: all 0.3s ease; }
+        .workflow-details.active { max-height: 700px; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 12px; opacity: 1; }
+        .workflow-row { display: flex; align-items: center; padding: 6px 10px; border-bottom: 1px solid #f8fafc; gap: 8px; border-radius: 10px; margin-bottom: 4px; background-color: #f8fafc; border: 1px solid transparent; transition: all 0.2s; }
+        .workflow-row:hover { border-color: #e2e8f0; background-color: #f1f5f9; }
+        .row-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        
+        .bulb-btn { cursor: pointer; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; user-select: none; transition: transform 0.1s ease; border-radius: 50%; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .bulb-btn:active { transform: scale(0.85); }
+        .bulb-svg { width: 18px; height: 18px; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; transition: all 0.2s; }
+        
+        .staff-select { padding: 4px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 11px; font-weight: bold; width: 58px; outline: none; background-color: white; flex-shrink: 0; text-align: center; color: #475569; }
+        .step-name { font-size: 13px; color: #475569; width: 120px; font-weight: 600; padding-left: 2px; flex-shrink: 0; }
+        .step-input { flex: 1; min-width: 80px; padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; background: white; color: #334155; outline: none; font-weight: 600; transition: all 0.2s; }
+        .step-input:focus { border-color: #2481cc; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
+        
+        /* Quantity Auto Style Active */
+        .quantity-active { background-color: #1e3a8a !important; color: #ffffff !important; font-weight: bold !important; }
+
+        /* Pagination */
+        .pagination { display: flex; justify-content: center; align-items: center; margin: 20px 0 30px 0; gap: 6px; }
+        .page-btn { padding: 7px 14px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; color: #64748b; transition: all 0.2s; }
+        .page-btn:hover:not(:disabled) { background: #f1f5f9; color: #1e293b; }
+        .page-btn.active { background: #2481cc; color: white; border-color: #2481cc; box-shadow: 0 2px 4px rgba(36,129,204,0.2); }
+        .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* Lightbox */
+        .preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
+        .preview-content { max-width: 100%; max-height: 70vh; border-radius: 12px; object-fit: contain; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .modal-controls { margin-top: 20px; display: flex; gap: 15px; width: 100%; justify-content: center; }
+        .modal-btn { padding: 10px 20px; border: none; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 14px; transition: transform 0.1s; }
+        .modal-btn:active { transform: scale(0.95); }
+        .close-modal-btn { background: #ef4444; color: white; }
+        .change-photo-btn { background: #10b981; color: white; display: flex; align-items: center; gap: 5px; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <h3 style="margin-bottom:5px; font-size:20px; color:#1e293b;">Perfect Print Flow</h3>
+            <p style="font-size:12px; color:#64748b; margin-bottom:18px;">အကောင့်ရွေးချယ်ပြီး Password ရိုက်ထည့်ပါ</p>
+            
+            <select class="login-select" id="userSelectField">
+                <option value="Myo Min">Myo Min (Admin)</option>
+                <option value="Sharhid">Sharhid</option>
+                <option value="Ausmaan">Ausmaan</option>
+            </select>
+
+            <input type="password" class="login-input" id="passwordField" placeholder="••••" onkeypress="if(event.key==='Enter') attemptLogin()">
+            <button class="login-btn" onclick="attemptLogin()">ဝင်ရောက်မည်</button>
+            <div class="login-error" id="loginErrorTxt">Password မှားယွင်းနေပါသည်။</div>
+        </div>
+    </div>
+
+    <div class="note-popup-modal" id="userNotePopupModal">
+        <div class="note-popup-box">
+            <h3 style="margin-bottom:12px; color:#1e293b; display:flex; align-items:center; gap:6px;">📌 Admin ၏ အသိပေးချက်</h3>
+            <div class="note-popup-content" id="userNotePopupContent"></div>
+            <button onclick="closeUserNotePopup()" style="margin-top:16px; width:100%; background:#ef4444; color:white; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer;">ပိတ်မည် (Close)</button>
+        </div>
+    </div>
+
+    <div class="header-container">
+        <div class="header">
+            <div class="job-count" id="jobCount">0 jobs</div>
+            
+            <div class="header-right">
+                <div class="fb-noti-bell" onclick="toggleFbNotiDropdown()">
+                    🔔 <span class="fb-noti-badge" id="fbNotiCount" style="display:none;">0</span>
+                    <div class="fb-noti-dropdown" id="fbNotiDropdown">
+                        <div class="fb-noti-header">
+                            <span>အကြောင်းကြားစာများ (Notifications)</span>
+                            <span style="color:#1877f2; font-size:12px; cursor:pointer;" onclick="toggleFbNotiDropdown()">✕</span>
+                        </div>
+                        <div class="fb-noti-list" id="fbNotiList">
+                            <div class="fb-noti-empty">အကြောင်းကြားစာမရှိသေးပါ။</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="add-btn" id="adminNoteToggleBtn" style="background:#0284c7; display:none;" onclick="toggleAdminNoteSection()">📝 Note ရေးရန်</button>
+                <button class="add-btn" id="userNoteToggleBtn" style="background:#0284c7; display:none;" onclick="showUserNotePopup()">📌 Note ကြည့်ရန်</button>
+
+                <button class="dashboard-toggle-btn" id="dashboardToggleBtn" onclick="openDashboardPopup()">📊 Dashboard</button>
+                <button class="log-toggle-btn" id="logToggleBtn" onclick="toggleLogsPanel()">📜 Logs</button>
+                <button class="add-btn" onclick="addNewJob()">+ Add Job</button>
+            </div>
+        </div>
+
+        <div class="admin-note-section" id="adminNoteSection">
+            <div class="admin-note-header">
+                <span style="font-weight:bold; font-size:13px; color:#334155;">📌 Admin အရေးကြီးမှတ်စု ရေးရန်</span>
+                <button style="background:none; border:none; color:#ef4444; font-weight:bold; cursor:pointer; font-size:12px;" onclick="toggleAdminNoteSection()">✕ Close Note</button>
+            </div>
+            <textarea class="admin-note-textarea" id="adminNoteTextarea" placeholder="လိုအပ်တာတွေ ဤနေရာတွင် ရေးသားထားနိုင်ပါသည်..." oninput="saveAdminNoteToServer(this.value)"></textarea>
+        </div>
+        
+        <div class="logs-panel" id="logsPanelElement">
+            <div style="font-weight:bold; font-size:14px; margin-bottom:8px; display:flex; justify-content:space-between; color:#334155;">
+                <span>📋 ဆိုင်တွင်း လုပ်ဆောင်ချက်မှတ်တမ်းများ</span>
+                <span style="cursor:pointer; color:#94a3b8; font-weight:bold;" onclick="toggleLogsPanel()">✕</span>
+            </div>
+            <input type="text" class="log-search-bar" id="logSearchBar" placeholder="🔍 ဝန်ထမ်းအမည်၊ ဖိုင်အမည်၊ စာသားဖြင့်ရှာရန်..." oninput="filterActivityLogs()">
+            <div id="logsContainer" class="log-items-container"></div>
+        </div>
+
+        <div class="search-wrapper">
+            <input type="text" class="search-bar" id="searchBar" placeholder="🔍 စာသား၊ နံပါတ် သို့မဟုတ် ရက်စွဲဖြင့်ရှာဖွေရန်..." oninput="triggerSearch()">
+        </div>
+        
+        <div class="filter-tabs">
+            <button class="tab-btn active" id="tab-all" onclick="switchFilterTab('all')">All</button>
+            <button class="tab-btn" id="tab-unfinished" onclick="switchFilterTab('unfinished')">Unfinished</button>
+            <button class="tab-btn" id="tab-finished" onclick="switchFilterTab('finished')">Finished</button>
+            <button class="tab-btn alert-tab" id="tab-alerts" onclick="switchFilterTab('alerts')">⚠️ Alert</button>
+        </div>
+    </div>
+
+    <div id="jobListContainer" style="margin-top: 10px;"></div>
+    <div class="pagination" id="paginationContainer"></div>
+
+    <div class="dashboard-overlay" id="dashboardPopupOverlay">
+        <div class="dashboard-content">
+            <div class="dashboard-header">
+                <h2 style="font-size:18px; color:#1e293b;">📊 ဆိုင်တွင်း လုပ်ငန်းခွင် ခြုံငုံမြင်ကွင်း (Overview)</h2>
+                <button class="dashboard-close-btn" onclick="closeDashboardPopup()">✕ Close</button>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:15px; margin-bottom: 18px; flex-wrap: wrap;">
+                <div class="dash-filter-tabs">
+                    <button class="dash-tab-btn active" id="dash-tab-all" onclick="switchDashboardFilter('all')">All</button>
+                    <button class="dash-tab-btn" id="dash-tab-unfinished" onclick="switchDashboardFilter('unfinished')">Unfinished</button>
+                    <button class="dash-tab-btn" id="dash-tab-finished" onclick="switchDashboardFilter('finished')">Finished</button>
+                </div>
+                <input type="text" class="dash-search-bar" id="dashboardSearchBar" placeholder="🔍 ID သို့မဟုတ် ဖိုင်အမည်ဖြင့် ရှာရန်..." oninput="renderDashboardTable()">
+            </div>
+
+            <div class="table-wrapper">
+                <table class="dash-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>အော်ဒါဖိုင်အမည်</th>
+                            <th>Paper Type</th>
+                            <th>CTP</th>
+                            <th>Press</th>
+                            <th>Lamination</th>
+                            <th>Die Frame Mould</th>
+                            <th>Die Cut</th>
+                            <th>Cutting</th>
+                            <th>Binding</th>
+                            <th>Zinc & Remark</th>
+                            <th>Gold Foil Press</th>
+                            <th>Quantity</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashboardTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="preview-modal" id="imagePreviewModal">
+        <img src="" class="preview-content" id="modalPreviewImg" alt="Preview">
+        <div class="modal-controls">
+            <button class="modal-btn change-photo-btn" onclick="triggerModalFileInput()">➕ Change Photo</button>
+            <button class="modal-btn close-modal-btn" onclick="closeImagePreview()">✕ Close</button>
+        </div>
+        <input type="file" id="modalFileInput" accept="image/*" style="display: none;" onchange="handleModalFileChange()">
+    </div>
+
+    <script>
+        const USER_ACCOUNTS = { "Myo Min": "8053", "Sharhid": "5415", "Ausmaan": "3776" };
+        const FIREBASE_URL = "https://printing-workflow-43d91-default-rtdb.asia-southeast1.firebasedatabase.app"; 
+
+        // 11 Workflow Rows Setup Array
+        const WORKFLOW_STEPS = [
+            {key: 'paper', label: 'Paper Type'}, {key: 'ctp', label: 'CTP'}, 
+            {key: 'press', label: 'Press'}, {key: 'lamination', label: 'Lamination'}, 
+            {key: 'dieframe', label: 'Die Frame Mould'}, {key: 'diecut', label: 'Die Cut'}, 
+            {key: 'cutting', label: 'Cutting'}, {key: 'binding', label: 'Binding'},
+            {key: 'zinc', label: 'Zinc and Remark'}, {key: 'goldfoil', label: 'Gold Foil Press'},
+            {key: 'quantity', label: 'Quantity'}
+        ];
+
+        // 3-Letter Staff names + A+S for Workflow Dropdowns
+        const STAFF_OPTIONS = ["Myo", "Sha", "Aus", "A+S"];
+
+        let jobsData = [];
+        let allLogsCached = []; 
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let localExpandedState = {}; 
+        let currentFilter = 'all'; 
+        let dashboardFilter = 'all'; 
+        let activePreviewJobId = null; 
+        let currentUser = ""; 
+        let hasSeenNote = false;
+
+        window.onload = function() { checkSecurityLock(); }
+
+        function checkSecurityLock() {
+            const savedUser = sessionStorage.getItem("loggedInUser");
+            if (savedUser && USER_ACCOUNTS[savedUser]) {
+                currentUser = savedUser;
+                document.getElementById('loginOverlay').style.display = 'none';
+                setupUserInterfacePrivileges();
+                initFirebaseSync();
+            } else {
+                document.getElementById('loginOverlay').style.display = 'flex';
+            }
+        }
+
+        function attemptLogin() {
+            const selectedUser = document.getElementById('userSelectField').value;
+            const enteredPass = document.getElementById('passwordField').value;
+
+            if (USER_ACCOUNTS[selectedUser] && USER_ACCOUNTS[selectedUser] === enteredPass) {
+                sessionStorage.setItem("loggedInUser", selectedUser);
+                currentUser = selectedUser;
+                document.getElementById('loginOverlay').style.display = 'none';
+                setupUserInterfacePrivileges();
+                initFirebaseSync();
+            } else {
+                const err = document.getElementById('loginErrorTxt');
+                err.style.display = 'block';
+                document.getElementById('passwordField').value = "";
+            }
+        }
+
+        // --- Core User / Admin Separation Setup ---
+        function setupUserInterfacePrivileges() {
+            if (currentUser === "Myo Min") {
+                document.getElementById('logToggleBtn').style.display = 'block';
+                document.getElementById('dashboardToggleBtn').style.display = 'block';
+                document.getElementById('adminNoteToggleBtn').style.display = 'block';
+                document.getElementById('userNoteToggleBtn').style.display = 'none';
+            } else {
+                document.getElementById('logToggleBtn').style.display = 'none';
+                document.getElementById('dashboardToggleBtn').style.display = 'none';
+                document.getElementById('adminNoteToggleBtn').style.display = 'none';
+                document.getElementById('userNoteToggleBtn').style.display = 'block';
+            }
+        }
+
+function initFirebaseSync() {
+    // 1. Jobs Data ကို ရေရှည် Live ချိတ်ဆက်ထားရန် (SSE Stream)
+    const jobsSource = new EventSource(`${FIREBASE_URL}/jobs.json`);
+    jobsSource.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        // Firebase Stream အရ data က အပြောင်းအလဲရှိရင် လှမ်းပို့ပေးပါတယ်
+        if (data && data.data) {
+            handleFirebaseData(data.data);
+            renderApp();
+        } else {
+            // ပထမဆုံးအကြိမ် full load လုပ်ရန်
+            fetch(`${FIREBASE_URL}/jobs.json`)
+                .then(res => res.json())
+                .then(fullData => {
+                    handleFirebaseData(fullData);
+                    renderApp();
+                });
+        }
+    };
+
+    // 2. Myo Min (Admin) ဖြစ်ပါက Logs panel ကိုပါ Live စောင့်ကြည့်ရန်
+    if (currentUser === "Myo Min") {
+        const logsSource = new EventSource(`${FIREBASE_URL}/logs.json`);
+        logsSource.onmessage = function(event) {
+            fetchLogsFromServer(); // Log အသစ်တိုးတိုင်း Server ကနေ အလိုအလျောက် ပြန်ဆွဲမည်
+        };
+        
+        // ပထမဆုံးအကြိမ် Log ဆွဲထားရန်
+        fetchLogsFromServer();
+    }
+}
+        // --- Note Logic ---
+        function initAdminNoteRealtime() {
+            fetch(`${FIREBASE_URL}/adminNote.json`).then(res => res.json()).then(data => {
+                const noteText = data ? data.text : "";
+                if (currentUser === "Myo Min") {
+                    document.getElementById('adminNoteTextarea').value = noteText;
+                } else {
+                    document.getElementById('userNotePopupContent').innerText = noteText || "ယနေ့အတွက် ထူးခြားမှတ်စု မရှိပါ။";
+                    if (!hasSeenNote && noteText.trim() !== "") {
+                        document.getElementById('userNotePopupModal').style.display = 'flex';
+                        hasSeenNote = true;
+                    }
+                }
+            });
+        }
+
+        function saveAdminNoteToServer(textVal) {
+            fetch(`${FIREBASE_URL}/adminNote.json`, { method: 'PUT', body: JSON.stringify({ text: textVal }) });
+        }
+
+        function toggleAdminNoteSection() {
+            const section = document.getElementById('adminNoteSection');
+            section.style.display = section.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function showUserNotePopup() {
+            fetch(`${FIREBASE_URL}/adminNote.json`).then(res => res.json()).then(data => {
+                document.getElementById('userNotePopupContent').innerText = (data && data.text) ? data.text : "ယနေ့အတွက် ထူးခြားမှတ်စု မရှိပါ။";
+                document.getElementById('userNotePopupModal').style.display = 'flex';
+            });
+        }
+
+        function closeUserNotePopup() { document.getElementById('userNotePopupModal').style.display = 'none'; }
+
+        // --- Notifications (3 Days + Alerts only, Myanmar language) ---
+        function checkAndGenerateAIAlerts() {
+            const notiList = document.getElementById('fbNotiList');
+            const notiBadge = document.getElementById('fbNotiCount');
+            if(!notiList) return;
+            notiList.innerHTML = "";
+            let count = 0;
+            const now = new Date();
+
+            jobsData.forEach(job => {
+                if (!job || job.isDone) return;
+
+                let shouldNotify = false;
+                let icon = '⏰'; let bg = '#1877f2'; let message = '';
+
+                if (job.isAlertActive) {
+                    shouldNotify = true; icon = '⚠️'; bg = '#ef4444';
+                    message = `ဤအလုပ်အား Admin မှ <b>အရေးပေါ် Alert</b> ပေးထားပါသည်။`;
+                } else {
+                    if (job.date) {
+                        const parts = job.date.split('-');
+                        if(parts.length === 3) {
+                            const jobDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                            const diffDays = Math.ceil(Math.abs(now - jobDate) / (1000 * 60 * 60 * 24));
+                            if (diffDays > 3) {
+                                shouldNotify = true;
+                                message = `ဤအလုပ်သည် <b>3 ရက်ထက်ပို၍ ကြာမြင့်နေပါသည်</b>။ (${diffDays} ရက်ရှိပြီ)`;
+                            }
+                        }
+                    }
+                }
+
+                if (shouldNotify) {
+                    count++;
+                    notiList.insertAdjacentHTML('beforeend', `
+                        <div class="fb-noti-item" onclick="focusAndSearchJob('${job.id}')">
+                            <div class="fb-noti-icon" style="background:${bg};">${icon}</div>
+                            <div>
+                                ${message}<br>
+                                <span style="font-size:11px; color:${bg}; font-weight:600;">Order #${job.id} - ${job.title || 'အမည်မရှိဖိုင်'}</span>
+                            </div>
+                        </div>
+                    `);
+                }
+            });
+
+            if (count > 0) {
+                notiBadge.innerText = count; notiBadge.style.display = 'block';
+            } else {
+                notiBadge.style.display = 'none';
+                notiList.innerHTML = '<div class="fb-noti-empty">အဆင်ပြေပါသည်! အရေးကြီး သတိပေးချက် မရှိပါ။</div>';
+            }
+        }
+
+        function toggleFbNotiDropdown() {
+            const dropdown = document.getElementById('fbNotiDropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function focusAndSearchJob(jobId) {
+            document.getElementById('searchBar').value = jobId;
+            triggerSearch();
+            document.getElementById('fbNotiDropdown').style.display = 'none';
+        }
+
+        // --- Data Logic ---
+        function handleFirebaseData(data) {
+            jobsData = [];
+            if(data) {
+                if(Array.isArray(data)) jobsData = data.filter(i => i !== null);
+                else Object.keys(data).forEach(k => { if(data[k]) jobsData.push(data[k]); });
+            }
+        }
+
+        function writeActivityLog(jobId, jobTitle, actionMessage) {
+            if(currentUser !== "Myo Min") return; 
+            const d = new Date();
+            const timestamp = `${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+            const cleanTitle = jobTitle ? jobTitle : "No Name";
+            const message = `[${timestamp}] - **${currentUser}** ${actionMessage} on **Order #${jobId} (${cleanTitle})**`;
+            fetch(`${FIREBASE_URL}/logs.json`, { method: 'POST', body: JSON.stringify({ text: message }) });
+        }
+
+        function fetchLogsFromServer() {
+            fetch(`${FIREBASE_URL}/logs.json`).then(res => res.json()).then(data => {
+                allLogsCached = [];
+                if (data) { Object.keys(data).forEach(key => { allLogsCached.push(data[key]); }); allLogsCached.reverse(); }
+                displayLogs(allLogsCached);
+            });
+        }
+
+        function displayLogs(logsArray) {
+            const container = document.getElementById('logsContainer');
+            if(!container) return;
+            if (logsArray.length === 0) { container.innerHTML = "မှတ်တမ်းမရှိပါ။"; return; }
+            container.innerHTML = "";
+            logsArray.forEach(log => { container.insertAdjacentHTML('beforeend', `<div class="log-item">${log.text}</div>`); });
+        }
+
+        function filterActivityLogs() {
+            const searchText = document.getElementById('logSearchBar').value.toLowerCase();
+            displayLogs(allLogsCached.filter(log => log.text && log.text.toLowerCase().includes(searchText)));
+        }
+
+        function toggleLogsPanel() {
+            const panel = document.getElementById('logsPanelElement');
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+            if(panel.style.display === 'block') { document.getElementById('logSearchBar').value = ""; fetchLogsFromServer(); }
+        }
+
+        // --- Dashboard Logic ---
+        function openDashboardPopup() {
+            dashboardFilter = 'all'; document.getElementById('dashboardSearchBar').value = ""; 
+            updateDashboardTabUI(); renderDashboardTable();
+            document.getElementById('dashboardPopupOverlay').style.display = 'block';
+        }
+        function closeDashboardPopup() { document.getElementById('dashboardPopupOverlay').style.display = 'none'; }
+        function switchDashboardFilter(type) { dashboardFilter = type; updateDashboardTabUI(); renderDashboardTable(); }
+
+        function updateDashboardTabUI() {
+            document.getElementById('dash-tab-all').classList.toggle('active', dashboardFilter === 'all');
+            document.getElementById('dash-tab-unfinished').classList.toggle('active', dashboardFilter === 'unfinished');
+            document.getElementById('dash-tab-finished').classList.toggle('active', dashboardFilter === 'finished');
+        }
+
+        function getStaffColor(name) {
+            if(!name) return '#f1f5f9';
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) { hash = name.charCodeAt(i) + ((hash << 5) - hash); }
+            const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+            return "#" + "00000".substring(0, 6 - c.length) + c + "25"; 
+        }
+
+        function renderDashboardTable() {
+            const tbody = document.getElementById('dashboardTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = "";
+            const sortedJobs = [...jobsData].sort((a,b) => b.id - a.id);
+            const searchInput = document.getElementById('dashboardSearchBar').value.toLowerCase();
+            
+            sortedJobs.forEach(job => {
+                if(!job) return;
+                if (dashboardFilter === 'finished' && job.isDone !== true) return;
+                if (dashboardFilter === 'unfinished' && job.isDone === true) return;
+                
+                const jobTitle = (job.title || '').toLowerCase();
+                if (searchInput && !jobTitle.includes(searchInput) && !job.id.toString().includes(searchInput)) return;
+                
+                const getStepCell = (stepKey) => {
+                    const step = (job.workflow && job.workflow[stepKey]) ? job.workflow[stepKey] : {};
+                    let bg = 'white'; let color = '#333';
+                    
+                    if (stepKey === 'quantity' && step.text && step.text.trim() !== '') { bg = '#1e3a8a'; color = 'white'; }
+                    else if (step.bulb === 'green') { bg = '#22c55e'; color = 'white'; }
+                    else if (step.bulb === 'red') { bg = '#ef4444'; color = 'white'; }
+                    else if (step.staff) { bg = getStaffColor(step.staff); }
+                    
+                    const labelStr = step.staff ? `<b>[${step.staff}]</b> ${step.text || ''}` : (step.text || '—');
+                    return `<td style="background-color:${bg}; color:${color}; font-size:11px;">${labelStr}</td>`;
+                };
+
+                const statusBadge = job.isDone ? `<span class="dash-cell-badge" style="background:#e0f2fe; color:#0369a1;">Finished</span>` : `<span class="dash-cell-badge" style="background:#fef3c7; color:#d97706;">Processing</span>`;
+                let cellsHtml = "";
+                WORKFLOW_STEPS.forEach(s => { cellsHtml += getStepCell(s.key); });
+
+                tbody.insertAdjacentHTML('beforeend', `
+                    <tr>
+                        <td><b>#${job.id}</b></td>
+                        <td style="font-weight:600; color:#1e293b;">${job.title || 'No Name'}</td>
+                        ${cellsHtml}
+                        <td>${statusBadge}</td>
+                    </tr>
+                `);
+            });
+        }
+
+        // --- Core Job Functionality ---
+        function triggerSearch() { currentPage = 1; renderApp(); }
+        function switchFilterTab(tabType) {
+            currentFilter = tabType;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${tabType}`).classList.add('active');
+            currentPage = 1; renderApp();
+        }
+
+        function addNewJob() {
+            const nextId = jobsData.length > 0 ? Math.max(...jobsData.map(j => j.id || 0)) + 1 : 1001;
+            const d = new Date();
+            const dateStr = `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
+            const newJob = { id: nextId, title: "", date: dateStr, isDone: false, image: "", isAlertActive: false, workflow: {} };
+            
+            WORKFLOW_STEPS.forEach(s => { newJob.workflow[s.key] = { staff: "", text: "", bulb: "white" }; });
+
+            fetch(`${FIREBASE_URL}/jobs/${nextId}.json`, { method: 'PUT', body: JSON.stringify(newJob) }).then(() => {
+                jobsData.push(newJob); localExpandedState[nextId] = true; 
+                writeActivityLog(nextId, "New Order", "created a new job card");
+                renderApp(); checkAndGenerateAIAlerts();
+            });
+        }
+
+        function cloneJobCard(id) {
+            const target = jobsData.find(j => j.id == id);
+            if(!target) return;
+            const nextId = jobsData.length > 0 ? Math.max(...jobsData.map(j => j.id || 0)) + 1 : 1001;
+            const cloned = JSON.parse(JSON.stringify(target));
+            cloned.id = nextId; cloned.title = cloned.title ? cloned.title + " (Copy)" : "(Copy)"; cloned.isDone = false; 
+
+            fetch(`${FIREBASE_URL}/jobs/${nextId}.json`, { method: 'PUT', body: JSON.stringify(cloned) }).then(() => {
+                jobsData.push(cloned); localExpandedState[nextId] = true;
+                writeActivityLog(nextId, cloned.title, "cloned this order from #" + id);
+                renderApp(); checkAndGenerateAIAlerts();
+            });
+        }
+
+        function deleteJobCard(id) {
+            if(!confirm("ဤအလုပ်ကတ်ကို ဖျက်ပစ်ရန် သေချာပါသလား?")) return;
+            const target = jobsData.find(j => j.id == id);
+            fetch(`${FIREBASE_URL}/jobs/${id}.json`, { method: 'DELETE' }).then(() => {
+                jobsData = jobsData.filter(j => j.id != id);
+                writeActivityLog(id, target?target.title:'', "permanently deleted the job card");
+                renderApp(); checkAndGenerateAIAlerts();
+            });
+        }
+
+        function updateField(id, path, val) {
+            fetch(`${FIREBASE_URL}/jobs/${id}/${path}.json`, { method: 'PUT', body: JSON.stringify(val) }).then(() => {
+                const job = jobsData.find(j => j.id == id);
+                if(job) {
+                    if(!path.includes('/')) { job[path] = val; } 
+                    else { const parts = path.split('/'); if(parts.length === 3) job.workflow[parts[1]][parts[2]] = val; }
+                }
+                if(path === 'title') { writeActivityLog(id, val, `updated title to "${val}"`); checkAndGenerateAIAlerts(); }
+            });
+        }
+
+        function handleQuantityInput(inputElement) {
+            if(inputElement.value.trim() !== '') inputElement.classList.add('quantity-active');
+            else inputElement.classList.remove('quantity-active');
+        }
+
+        function toggleJobDone(id, currentStatus) {
+            const newStatus = !currentStatus;
+            fetch(`${FIREBASE_URL}/jobs/${id}/isDone.json`, { method: 'PUT', body: JSON.stringify(newStatus) }).then(() => {
+                const job = jobsData.find(j => j.id == id);
+                if(job) job.isDone = newStatus;
+                writeActivityLog(id, job?job.title:'', newStatus ? "marked card as FINISHED" : "reopened card to UNFINISHED");
+                renderApp(); checkAndGenerateAIAlerts();
+            });
+        }
+
+        function toggleCardAlert(id, currentAlertState) {
+            const newState = !currentAlertState;
+            fetch(`${FIREBASE_URL}/jobs/${id}/isAlertActive.json`, { method: 'PUT', body: JSON.stringify(newState) }).then(() => {
+                const job = jobsData.find(j => j.id == id);
+                if(job) job.isAlertActive = newState;
+                writeActivityLog(id, job?job.title:'', newState ? "activated WARNING ALERT glow" : "removed warning alert");
+                renderApp(); checkAndGenerateAIAlerts();
+            });
+        }
+
+        // New Bulb Logic (Red -> Green -> Original)
+        function cycleBulb(id, stepKey, currentBulb) {
+            let next = "white";
+            if(currentBulb === "white") next = "red";
+            else if(currentBulb === "red") next = "green";
+            
+            fetch(`${FIREBASE_URL}/jobs/${id}/workflow/${stepKey}/bulb.json`, { method: 'PUT', body: JSON.stringify(next) }).then(() => {
+                const job = jobsData.find(j => j.id == id);
+                if(job && job.workflow && job.workflow[stepKey]) job.workflow[stepKey].bulb = next;
+                writeActivityLog(id, job?job.title:'', `changed [${stepKey.toUpperCase()}] status indicator color to ${next.toUpperCase()}`);
+                renderApp();
+            });
+        }
+
+        function handleFileSelection(id, files) {
+            if(!files || files.length === 0) return;
+            const r = new FileReader();
+            r.onload = function(e) {
+                const base64 = e.target.result;
+                fetch(`${FIREBASE_URL}/jobs/${id}/image.json`, { method: 'PUT', body: JSON.stringify(base64) }).then(() => {
+                    const job = jobsData.find(j => j.id == id);
+                    if(job) job.image = base64;
+                    writeActivityLog(id, job?job.title:'', "uploaded/changed order file attachment preview");
+                    renderApp();
+                });
+            };
+            r.readAsDataURL(files[0]);
+        }
+
+        function openImagePreview(id, currentImgSrc) {
+            activePreviewJobId = id; const modal = document.getElementById('imagePreviewModal');
+            document.getElementById('modalPreviewImg').src = currentImgSrc ? currentImgSrc : ''; modal.style.display = 'flex';
+        }
+        function closeImagePreview() { document.getElementById('imagePreviewModal').style.display = 'none'; activePreviewJobId = null; }
+        function triggerModalFileInput() { document.getElementById('modalFileInput').click(); }
+        function handleModalFileChange() {
+            const files = document.getElementById('modalFileInput').files;
+            if(files.length > 0 && activePreviewJobId) {
+                const r = new FileReader();
+                r.onload = function(e) {
+                    const base64 = e.target.result;
+                    document.getElementById('modalPreviewImg').src = base64;
+                    updateField(activePreviewJobId, 'image', base64);
+                    writeActivityLog(activePreviewJobId, "", "changed artwork image directly via popup editor");
+                    setTimeout(renderApp, 600);
+                };
+                r.readAsDataURL(files[0]);
+            }
+        }
+
+        function toggleExpand(id) {
+            localExpandedState[id] = !localExpandedState[id];
+            const el = document.getElementById(`workflow-${id}`);
+            const btn = document.getElementById(`expanded-btn-${id}`);
+            if(localExpandedState[id]) { el.classList.add('active'); btn.innerHTML = "▲ Hide Process Flow"; }
+            else { el.classList.remove('active'); btn.innerHTML = "▼ View Process Flow"; }
+        }
+
+        // --- Render UI ---
+        function renderApp() {
+            const container = document.getElementById('jobListContainer');
+            if(!container) return;
+            container.innerHTML = "";
+            
+            let filtered = [...jobsData].sort((a,b) => b.id - a.id);
+            const q = document.getElementById('searchBar').value.toLowerCase();
+
+            if(q) {
+                filtered = filtered.filter(j => 
+                    (j.id && j.id.toString().includes(q)) || 
+                    (j.title && j.title.toLowerCase().includes(q)) ||
+                    (j.date && j.date.includes(q))
+                );
+            }
+
+            if (currentFilter === 'finished') filtered = filtered.filter(j => j.isDone === true);
+            else if (currentFilter === 'unfinished') filtered = filtered.filter(j => j.isDone === false);
+            else if (currentFilter === 'alerts') filtered = filtered.filter(j => j.isAlertActive === true);
+
+            document.getElementById('jobCount').innerText = `${filtered.length} jobs`;
+
+            const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
+            if(currentPage > totalPages) currentPage = totalPages;
+            
+            const startIdx = (currentPage - 1) * itemsPerPage;
+            const pageItems = filtered.slice(startIdx, startIdx + itemsPerPage);
+
+            if(pageItems.length === 0) {
+                container.innerHTML = "<div style='text-align:center; margin-top:40px; color:#64748b; font-weight:bold;'>ရှာဖွေမှုမတွေ့ရှိပါ သို့မဟုတ် ဒေတာမရှိပါ ခင်ဗျာ။</div>";
+                document.getElementById('paginationContainer').innerHTML = ""; return;
+            }
+
+            pageItems.forEach(job => {
+                if(!job) return;
+                const isExpanded = localExpandedState[job.id] === true;
+                const doneClass = job.isDone ? 'done' : '';
+                const finishedCardClass = job.isDone ? 'finished-card' : '';
+                const titleFinishedClass = job.isDone ? 'finished-title' : '';
+                const pulseAlertClass = job.isAlertActive ? 'alert-pulse-card' : '';
+
+                const thumbSrc = job.image ? `style="background-image: url('${job.image}'); border-style: solid;"` : '';
+                const plusVisibility = job.image ? 'style="display:none;"' : '';
+                const thumbOnClick = job.image ? `onclick="openImagePreview(${job.id}, '${job.image}')"` : `onclick="document.getElementById('file-input-${job.id}').click()"`;
+
+                let workflowRowsHtml = "";
+
+                WORKFLOW_STEPS.forEach(s => {
+                    const stepData = (job.workflow && job.workflow[s.key]) ? job.workflow[s.key] : { staff: "", text: "", bulb: "white" };
+                    const currentBulb = stepData.bulb || "white";
+                    
+                    let svgColor = "#94a3b8"; let svgFill = "none";
+                    let inputStyle = "background-color: white; color: #334155; font-weight: 600;";
+                    let qtyActive = "";
+
+                    if(currentBulb === 'red') { svgColor = "#ef4444"; svgFill = "#ef4444"; inputStyle = "background-color: #ef4444; color: #ffffff;"; }
+                    else if(currentBulb === 'green') { svgColor = "#22c55e"; svgFill = "#22c55e"; inputStyle = "background-color: #22c55e; color: #ffffff;"; }
+
+                    if (s.key === 'quantity' && stepData.text && stepData.text.trim() !== '') {
+                        qtyActive = "quantity-active";
+                    }
+
+                    // Render 3-Letter Staff Options + A+S
+                    let staffOptsHtml = `<option value="">—</option>`;
+                    STAFF_OPTIONS.forEach(opt => {
+                        staffOptsHtml += `<option value="${opt}" ${stepData.staff === opt ? 'selected' : ''}>${opt}</option>`;
+                    });
+
+                    workflowRowsHtml += `
+                        <div class="workflow-row">
+                            <div class="row-controls">
+                                <div class="bulb-btn" onclick="cycleBulb(${job.id}, '${s.key}', '${currentBulb}')">
+                                    <svg class="bulb-svg" style="stroke: ${svgColor}; fill: ${svgFill};" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 1 7 7c0 2.5-1.5 4.5-2.5 5.5l-.5 1.5H8l-.5-1.5C6.5 13.5 5 11.5 5 9a7 7 0 0 1 7-7z"/></svg>
+                                </div>
+                                <select class="staff-select" style="background-color: ${getStaffColor(stepData.staff)}" onchange="updateField(${job.id}, 'workflow/${s.key}/staff', this.value)">
+                                    ${staffOptsHtml}
+                                </select>
+                            </div>
+                            <span class="step-name">${s.label}</span>
+                            <input type="text" class="step-input ${qtyActive}" style="${inputStyle}" value="${stepData.text || ''}" placeholder="မှတ်ချက်..." onchange="updateField(${job.id}, 'workflow/${s.key}/text', this.value)" ${s.key === 'quantity' ? 'oninput="handleQuantityInput(this)"' : ''}>
+                        </div>
+                    `;
+                });
+
+                // Alert Button (Admin Only)
+                const alertControlHtml = (currentUser === "Myo Min") ? `
+                    <div class="top-alert-toggle ${job.isAlertActive ? 'alert-active' : ''}" onclick="toggleCardAlert(${job.id}, ${job.isAlertActive})">
+                        <input type="checkbox" class="top-alert-checkbox" ${job.isAlertActive ? 'checked' : ''} onclick="event.stopPropagation(); toggleCardAlert(${job.id}, ${job.isAlertActive})"> ⚠️ Alert
+                    </div>
+                ` : '';
+
+                // Footer Clone/Delete Buttons (Admin Only)
+                const footerActionsHtml = (currentUser === "Myo Min") ? `
+                    <div class="footer-actions">
+                        <button class="clone-btn" onclick="cloneJobCard(${job.id})" title="Copy Job Card">📄 Clone</button>
+                        <button class="delete-btn" onclick="deleteJobCard(${job.id})" title="Delete Job Card">🗑️</button>
+                    </div>
+                ` : '';
+
+                const cardHtml = `
+                    <div class="job-card ${finishedCardClass} ${pulseAlertClass}">
+                        <div class="card-top">
+                            <div class="job-info">
+                                <div class="image-upload-container">
+                                    <input type="file" id="file-input-${job.id}" class="file-input" accept="image/*" onchange="handleFileSelection(${job.id}, this.files)">
+                                    <div class="job-thumb" id="thumb-${job.id}" ${thumbSrc} ${thumbOnClick}>
+                                        <span class="plus-icon" ${plusVisibility}>+</span>
+                                    </div>
+                                </div>
+                                <div class="title-container">
+                                    <div class="title-row">
+                                        <span class="job-id-badge">ID: ${job.id}</span>
+                                        <input type="text" class="job-title-input ${titleFinishedClass}" value="${job.title || ''}" placeholder="အော်ဒါဖိုင်အမည် ရိုက်ထည့်ရန်..." onchange="updateField(${job.id}, 'title', this.value)">
+                                        ${job.isDone ? '<span class="finished-badge">✓ Finished</span>' : ''}
+                                    </div>
+                                    <input type="text" class="job-date-input-manual" value="${job.date || ''}" onchange="updateField(${job.id}, 'date', this.value)">
+                                </div>
+                            </div>
+                            <div class="top-control-right">
+                                ${alertControlHtml}
+                                <div class="status-circle ${doneClass}" onclick="toggleJobDone(${job.id}, ${job.isDone})"></div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <div class="more-details-btn" id="expanded-btn-${job.id}" onclick="toggleExpand(${job.id})">
+                                ${isExpanded ? '▲ Hide Process Flow' : '▼ View Process Flow'}
+                            </div>
+                            ${footerActionsHtml}
+                        </div>
+
+                        <div class="workflow-details ${isExpanded?'active':''}" id="workflow-${job.id}">
+                            ${workflowRowsHtml}
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHtml);
+            });
+
+            renderPaginationControls(totalPages);
+        }
+
+        function renderPaginationControls(totalPages) {
+            const container = document.getElementById('paginationContainer');
+            if(!container) return; container.innerHTML = ""; if (totalPages <= 1) return;
+
+            let html = `<button class="page-btn" ${currentPage===1?'disabled':''} onclick="changePage(${currentPage-1})">◀ Prev</button>`;
+            for(let i=1; i<=totalPages; i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+            }
+            html += `<button class="page-btn" ${currentPage===totalPages?'disabled':''} onclick="changePage(${currentPage+1})">Next ▶</button>`;
+            container.innerHTML = html;
+        }
+
+        function changePage(pageNum) { currentPage = pageNum; renderApp(); window.scrollTo(0,0); }
+    </script>
+</body>
+</html>
