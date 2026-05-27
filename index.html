@@ -421,19 +421,7 @@
                 fetchLogsFromServer();
             }
         }
-    };
 
-    // 2. Myo Min (Admin) ဖြစ်ပါက Logs panel ကိုပါ Live စောင့်ကြည့်ရန်
-    if (currentUser === "Myo Min") {
-        const logsSource = new EventSource(`${FIREBASE_URL}/logs.json`);
-        logsSource.onmessage = function(event) {
-            fetchLogsFromServer(); // Log အသစ်တိုးတိုင်း Server ကနေ အလိုအလျောက် ပြန်ဆွဲမည်
-        };
-        
-        // ပထမဆုံးအကြိမ် Log ဆွဲထားရန်
-        fetchLogsFromServer();
-    }
-}
         // --- Note Logic ---
         function initAdminNoteRealtime() {
             fetch(`${FIREBASE_URL}/adminNote.json`).then(res => res.json()).then(data => {
