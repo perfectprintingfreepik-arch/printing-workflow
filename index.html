@@ -409,18 +409,37 @@
             }
         }
 
-        // --- Fetch & Sync ---
-        function initFirebaseSync() {
-            fetch(`${FIREBASE_URL}/jobs.json`).then(res => res.json()).then(data => {
-                handleFirebaseData(data);
-                renderApp();
-                checkAndGenerateAIAlerts();
-                initAdminNoteRealtime();
-            });
-            if (currentUser === "Myo Min") {
-                fetchLogsFromServer();
-            }
+function initFirebaseSync() {
+    // 1. Jobs Data ကို ရေရှည် Live ချိတ်ဆက်ထားရန် (SSE Stream)
+    const jobsSource = new EventSource(`${FIREBASE_URL}/jobs.json`);
+    jobsSource.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        // Firebase Stream အရ data က အပြောင်းအလဲရှိရင် လှမ်းပို့ပေးပါတယ်
+        if (data && data.data) {
+            handleFirebaseData(data.data);
+            renderApp();
+        } else {
+            // ပထမဆုံးအကြိမ် full load လုပ်ရန်
+            fetch(`${FIREBASE_URL}/jobs.json`)
+                .then(res => res.json())
+                .then(fullData => {
+                    handleFirebaseData(fullData);
+                    renderApp();
+                });
         }
+    };
+
+    // 2. Myo Min (Admin) ဖြစ်ပါက Logs panel ကိုပါ Live စောင့်ကြည့်ရန်
+    if (currentUser === "Myo Min") {
+        const logsSource = new EventSource(`${FIREBASE_URL}/logs.json`);
+        logsSource.onmessage = function(event) {
+            fetchLogsFromServer(); // Log အသစ်တိုးတိုင်း Server ကနေ အလိုအလျောက် ပြန်ဆွဲမည်
+        };
+        
+        // ပထမဆုံးအကြိမ် Log ဆွဲထားရန်
+        fetchLogsFromServer();
+    }
+}
 
         // --- Note Logic ---
         function initAdminNoteRealtime() {
