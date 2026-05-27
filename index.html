@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -55,11 +54,11 @@
         .fb-noti-bell { position: relative; cursor: pointer; background: #e4e6eb; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
         .fb-noti-bell:hover { background: #d8dadf; }
         .fb-noti-badge { position: absolute; top: -4px; right: -4px; background: #e41e3f; color: white; font-size: 11px; font-weight: bold; padding: 1px 5px; border-radius: 10px; border: 2px solid #fff; }
-        .fb-noti-dropdown { display: none; position: absolute; top: 40px; right: -50px; max-width: 250vw; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #cbd5e1; z-index: 1000; overflow: hidden; animation: fadeIn 0.2s; }
+        .fb-noti-dropdown { display: none; position: absolute; top: 40px; right: 0; width: 320px; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #cbd5e1; z-index: 1000; overflow: hidden; animation: fadeIn 0.2s; }
         .fb-noti-header { padding: 12px; font-weight: bold; font-size: 15px; border-bottom: 1px solid #f0f2f5; display: flex; justify-content: space-between; align-items: center; }
         .fb-noti-list { max-height: 250px; overflow-y: auto; }
         .fb-noti-item { display: flex; gap: 10px; padding: 10px 12px; border-bottom: 1px solid #f0f2f5; font-size: 12.5px; line-height: 1.4; cursor: pointer; color: #1c1e21; transition: background 0.2s; }
-        .max-widthound: #f0f2f5; }
+        .fb-noti-item:hover { background: #f0f2f5; }
         .fb-noti-icon { color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; }
         .fb-noti-empty { padding: 20px; text-align: center; color: #65676b; font-size: 13px; }
 
@@ -94,13 +93,12 @@
         .dash-search-bar { width: 100%; max-width: 280px; padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 20px; font-size: 13px; outline: none; transition: all 0.2s; background: white; }
         .dash-search-bar:focus { border-color: #0284c7; box-shadow: 0 0 0 3px rgba(2,132,199,0.15); }
 
-        /* Dashboard Table (Restored to User Original Layout) */
+        /* Dashboard Table */
         .table-wrapper { width: 100%; overflow-x: auto; background: white; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .dash-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; min-width: 900px; }
+        .dash-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; min-width: 1000px; }
         .dash-table th, .dash-table td { padding: 12px 10px; border: 1px solid #e2e8f0; }
         .dash-table th { background: #f8fafc; color: #475569; font-weight: bold; }
         .dash-table tr:nth-child(even) { background: #f8fafc; }
-        .dash-cell-badge { padding: 3px 6px; border-radius: 4px; font-weight: bold; display: inline-block; font-size: 11px; }
 
         /* Job Card Layout */
         .job-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.01); position: relative; border: 1px solid rgba(226,232,240,0.7); transition: transform 0.2s, box-shadow 0.2s; }
@@ -245,8 +243,8 @@
                     </div>
                 </div>
 
-                <button class="add-btn" id="adminNoteToggleBtn" style="background:#0284c7; display:none;" onclick="toggleAdminNoteSection()">📝 Note</button>
-                <button class="add-btn" id="userNoteToggleBtn" style="background:#0284c7; display:none;" onclick="showUserNotePopup()">📝 Note</button>
+                <button class="add-btn" id="adminNoteToggleBtn" style="background:#0284c7; display:none;" onclick="toggleAdminNoteSection()">📝 Note ရေးရန်</button>
+                <button class="add-btn" id="userNoteToggleBtn" style="background:#0284c7; display:none;" onclick="showUserNotePopup()">📌 Note ကြည့်ရန်</button>
 
                 <button class="dashboard-toggle-btn" id="dashboardToggleBtn" onclick="openDashboardPopup()">📊 Dashboard</button>
                 <button class="log-toggle-btn" id="logToggleBtn" onclick="toggleLogsPanel()">📜 Logs</button>
@@ -257,9 +255,9 @@
         <div class="admin-note-section" id="adminNoteSection">
             <div class="admin-note-header">
                 <span style="font-weight:bold; font-size:13px; color:#334155;">📌 Admin အရေးကြီးမှတ်စု ရေးရန်</span>
-                <button style="background:none; border:none; color:#ef4444; font-weight:bold; cursor:pointer; font-size:12px;" onclick="toggleAdminNoteSection()">✕ Close</button>
+                <button style="background:none; border:none; color:#ef4444; font-weight:bold; cursor:pointer; font-size:12px;" onclick="toggleAdminNoteSection()">✕ Close Note</button>
             </div>
-            <textarea class="admin-note-textarea" id="adminNoteTextarea" placeholder="လိုအပ်တာတွေ ဤနေရာတွင် ရေးသားထားနိုင်ပါသည်..." onchange="saveAdminNoteToServer(this.value)"></textarea>
+            <textarea class="admin-note-textarea" id="adminNoteTextarea" placeholder="လိုအပ်တာတွေ ဤနေရာတွင် ရေးသားထားနိုင်ပါသည်..." oninput="saveAdminNoteToServer(this.value)"></textarea>
         </div>
         
         <div class="logs-panel" id="logsPanelElement">
@@ -347,11 +345,11 @@
             {key: 'press', label: 'Press'}, {key: 'lamination', label: 'Lamination'}, 
             {key: 'dieframe', label: 'Die Frame Mould'}, {key: 'diecut', label: 'Die Cut'}, 
             {key: 'cutting', label: 'Cutting'}, {key: 'binding', label: 'Binding'},
-            {key: 'zinc', label: 'Zinc or Remark'}, {key: 'goldfoil', label: 'Gold Foil Press'},
+            {key: 'zinc', label: 'Zinc and Remark'}, {key: 'goldfoil', label: 'Gold Foil Press'},
             {key: 'quantity', label: 'Quantity'}
         ];
 
-        // 3-Letter Staff names + A+S for Workflow Dropdowns ONLY
+        // 3-Letter Staff names + A+S for Workflow Dropdowns
         const STAFF_OPTIONS = ["Myo", "Sha", "Aus", "A+S"];
 
         let jobsData = [];
@@ -411,19 +409,37 @@
             }
         }
 
-        // --- Fetch & Sync ---
-        function initFirebaseSync() {
-            fetch(`${FIREBASE_URL}/jobs.json`).then(res => res.json()).then(data => {
-                handleFirebaseData(data);
-                renderApp();
-                checkAndGenerateAIAlerts();
-                initAdminNoteRealtime();
-            });
-            if (currentUser === "Myo Min") {
-                fetchLogsFromServer();
-            }
+function initFirebaseSync() {
+    // 1. Jobs Data ကို ရေရှည် Live ချိတ်ဆက်ထားရန် (SSE Stream)
+    const jobsSource = new EventSource(`${FIREBASE_URL}/jobs.json`);
+    jobsSource.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        // Firebase Stream အရ data က အပြောင်းအလဲရှိရင် လှမ်းပို့ပေးပါတယ်
+        if (data && data.data) {
+            handleFirebaseData(data.data);
+            renderApp();
+        } else {
+            // ပထမဆုံးအကြိမ် full load လုပ်ရန်
+            fetch(`${FIREBASE_URL}/jobs.json`)
+                .then(res => res.json())
+                .then(fullData => {
+                    handleFirebaseData(fullData);
+                    renderApp();
+                });
         }
+    };
 
+    // 2. Myo Min (Admin) ဖြစ်ပါက Logs panel ကိုပါ Live စောင့်ကြည့်ရန်
+    if (currentUser === "Myo Min") {
+        const logsSource = new EventSource(`${FIREBASE_URL}/logs.json`);
+        logsSource.onmessage = function(event) {
+            fetchLogsFromServer(); // Log အသစ်တိုးတိုင်း Server ကနေ အလိုအလျောက် ပြန်ဆွဲမည်
+        };
+        
+        // ပထမဆုံးအကြိမ် Log ဆွဲထားရန်
+        fetchLogsFromServer();
+    }
+}
         // --- Note Logic ---
         function initAdminNoteRealtime() {
             fetch(`${FIREBASE_URL}/adminNote.json`).then(res => res.json()).then(data => {
@@ -523,7 +539,7 @@
             document.getElementById('fbNotiDropdown').style.display = 'none';
         }
 
-        // --- Data Logic (Optimistic Updates included to fix text disappearance) ---
+        // --- Data Logic ---
         function handleFirebaseData(data) {
             jobsData = [];
             if(data) {
@@ -682,23 +698,13 @@
             });
         }
 
-        // Optimistic Update Function to Fix Text Disappearing Bug
         function updateField(id, path, val) {
-            // Optimistic update locally first
-            const job = jobsData.find(j => j.id == id);
-            if(job) {
-                if(!path.includes('/')) { job[path] = val; } 
-                else {
-                    const parts = path.split('/');
-                    if(parts.length === 3) {
-                        if (!job.workflow) job.workflow = {};
-                        if (!job.workflow[parts[1]]) job.workflow[parts[1]] = {};
-                        job.workflow[parts[1]][parts[2]] = val;
-                    }
-                }
-            }
-            
             fetch(`${FIREBASE_URL}/jobs/${id}/${path}.json`, { method: 'PUT', body: JSON.stringify(val) }).then(() => {
+                const job = jobsData.find(j => j.id == id);
+                if(job) {
+                    if(!path.includes('/')) { job[path] = val; } 
+                    else { const parts = path.split('/'); if(parts.length === 3) job.workflow[parts[1]][parts[2]] = val; }
+                }
                 if(path === 'title') { writeActivityLog(id, val, `updated title to "${val}"`); checkAndGenerateAIAlerts(); }
             });
         }
@@ -723,28 +729,22 @@
             fetch(`${FIREBASE_URL}/jobs/${id}/isAlertActive.json`, { method: 'PUT', body: JSON.stringify(newState) }).then(() => {
                 const job = jobsData.find(j => j.id == id);
                 if(job) job.isAlertActive = newState;
-                writeActivityLog(id, job?job.title:'', newState ? "activated WARNING ALERT" : "removed warning alert");
+                writeActivityLog(id, job?job.title:'', newState ? "activated WARNING ALERT glow" : "removed warning alert");
                 renderApp(); checkAndGenerateAIAlerts();
             });
         }
 
-        // New Bulb Logic (Red -> Green -> Original) with Optimistic UI Update
+        // New Bulb Logic (Red -> Green -> Original)
         function cycleBulb(id, stepKey, currentBulb) {
             let next = "white";
             if(currentBulb === "white") next = "red";
             else if(currentBulb === "red") next = "green";
             
-            // Optimistic update
-            const job = jobsData.find(j => j.id == id);
-            if(job && job.workflow) {
-                if(!job.workflow[stepKey]) job.workflow[stepKey] = {};
-                job.workflow[stepKey].bulb = next;
-            }
-            // Immediately render so text doesn't vanish
-            renderApp();
-            
             fetch(`${FIREBASE_URL}/jobs/${id}/workflow/${stepKey}/bulb.json`, { method: 'PUT', body: JSON.stringify(next) }).then(() => {
+                const job = jobsData.find(j => j.id == id);
+                if(job && job.workflow && job.workflow[stepKey]) job.workflow[stepKey].bulb = next;
                 writeActivityLog(id, job?job.title:'', `changed [${stepKey.toUpperCase()}] status indicator color to ${next.toUpperCase()}`);
+                renderApp();
             });
         }
 
