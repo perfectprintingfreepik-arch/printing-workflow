@@ -504,7 +504,7 @@
 
                 if (shouldNotify) {
                     count++;
-                    notiList.insertAdjacentHTML('beforeend', `
+                    notiList.insertAdjacentHTML('afterbegin', `
                         <div class="fb-noti-item" onclick="focusAndSearchJob('${job.id}')">
                             <div class="fb-noti-icon" style="background:${bg};">${icon}</div>
                             <div>
