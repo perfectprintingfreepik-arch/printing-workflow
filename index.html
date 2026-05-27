@@ -196,6 +196,20 @@
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        /* ဖုန်းမျက်နှာပြင် (Mobile View) အတွက် Notification ကို အလယ်ပို့ခြင်း */
+@media (max-width: 600px) {
+    .fb-noti-dropdown {
+        position: fixed !important;   /* ဖုန်း Screen တစ်ခုလုံးရဲ့ အလယ်မှာ ပေါ်စေရန် */
+        top: 60px !important;         /* အပေါ်ဘက် Notch/Bar နဲ့ မကပ်အောင် အကွာအဝေး */
+        left: 50% !important;         /* ဘယ်ဘက်ကနေ ၅၀ ရာခိုင်နှုန်း ခွာမည် */
+        right: auto !important;        /* အရင် ရှိနေတဲ့ ညာကပ်တာကို ဖျောက်ရန် */
+        transform: translateX(-50%) !important; /* အလယ်တည့်တည့်သို့ ဆွဲညှိခြင်း */
+        width: 92% !important;        /* ဖုန်း screen အကျယ်ရဲ့ ၉၂ ရာခိုင်နှုန်း ယူမည် */
+        max-width: 350px !important;  /* အရမ်းကြီးမသွားစေရန် အကျယ်ကို ကန့်သတ်ခြင်း */
+        box-shadow: 0 10px 25px rgba(0,0,0,0.25) !important; /* ဖုန်းမှာ ပိုပြီး ထင်သာမြင်သာရှိအောင် အရိပ်ထည့်ခြင်း */
+    }
+}
     </style>
 </head>
 <body>
