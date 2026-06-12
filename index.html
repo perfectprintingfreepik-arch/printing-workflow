@@ -744,48 +744,21 @@ function writeActivityLog(jobId, jobTitle, actionMessage) {
             });
         }
 
-async function handleFileSelection(id, files) {
-    if(!files || files.length === 0) return;
-    
-    const file = files[0];
-    // သင်တို့၏ Firebase Storage Bucket အမည်
-    const BUCKET = "pan-ae-yar-6b04b.appspot.com"; 
-    const fileName = `jobs/${id}_${Date.now()}_${file.name}`;
-    
-    try {
-        // ၁။ Firebase Storage သို့ ပုံကို Binary အနေဖြင့် တိုက်ရိုက် Upload တင်ခြင်း
-        const uploadUrl = `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o?name=${encodeURIComponent(fileName)}`;
-        const storageRes = await fetch(uploadUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': file.type },
-            body: file // FileReader မလိုတော့ဘဲ file object ကို တိုက်ရိုက်ပို့ပါတယ်
-        });
-        
-        if (!storageRes.ok) throw new Error("Firebase Storage Upload Failed");
-        const storageData = await storageRes.json();
-        
-        // ၂။ Firebase Storage မှ ပုံကြည့်နိုင်မည့် Public URL ကို Secure Token ဖြင့် တည်ဆောက်ခြင်း
-        const downloadToken = storageData.downloadTokens;
-        const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/${encodeURIComponent(fileName)}?alt=media&token=${downloadToken}`;
-        
-        // ၃။ ရရှိလာသော Firebase Image URL အား Realtime Database ထဲသို့ PUT စနစ်ဖြင့် လှမ်းသိမ်းခြင်း
-        await fetch(`${FIREBASE_URL}/jobs/${id}/image.json`, { 
-            method: 'PUT', 
-            body: JSON.stringify(imageUrl) 
-        });
-        
-        // ၄။ Local ဒေတာများအား Update လုပ်ပြီး UI ကို ပြန်ဆွဲခြင်း (သင့်မူလကုဒ်အတိုင်း)
-        const job = jobsData.find(j => j.id == id);
-        if(job) job.image = imageUrl;
-        
-        writeActivityLog(id, job ? job.title : '', "uploaded/changed order file attachment preview");
-        renderApp();
-        
-    } catch (error) {
-        console.error("Error uploading to Firebase Storage:", error);
-        alert("Firebase Storage သို့ ပုံတင်ခြင်း မအောင်မြင်ပါ။ Firebase Console ထဲက Storage Rules တွင် write: if true; ခွင့်ပြုထားရပါမည်။");
-    }
-}
+        function handleFileSelection(id, files) {
+            if(!files || files.length === 0) return;
+            const r = new FileReader();
+            r.onload = function(e) {
+                const base64 = e.target.result;
+                fetch(`${FIREBASE_URL}/jobs/${id}/image.json`, { method: 'PUT', body: JSON.stringify(base64) }).then(() => {
+                    const job = jobsData.find(j => j.id == id);
+                    if(job) job.image = base64;
+                    writeActivityLog(id, job?job.title:'', "uploaded/changed order file attachment preview");
+                    renderApp();
+                });
+            };
+            r.readAsDataURL(files[0]);
+        }
+
         function openImagePreview(id, currentImgSrc) {
             activePreviewJobId = id; const modal = document.getElementById('imagePreviewModal');
             document.getElementById('modalPreviewImg').src = currentImgSrc ? currentImgSrc : ''; modal.style.display = 'flex';
@@ -793,56 +766,19 @@ async function handleFileSelection(id, files) {
         function closeImagePreview() { document.getElementById('imagePreviewModal').style.display = 'none'; activePreviewJobId = null; }
         function triggerModalFileInput() { document.getElementById('modalFileInput').click(); }
         function handleModalFileChange() {
-async function handleModalFileChange() {
-    const files = document.getElementById('modalFileInput').files;
-    if(files.length > 0 && activePreviewJobId) {
-        const file = files[0];
-        const id = activePreviewJobId;
-        
-        // သင်တို့၏ Firebase Storage Bucket အမည်
-        const BUCKET = "pan-ae-yar-6b04b.appspot.com"; 
-        const fileName = `jobs/${id}_${Date.now()}_${file.name}`;
-        
-        // ပုံတင်နေစဉ် ခေတ္တစောင့်ရန် UI အသိပေးခြင်း
-        const previewImg = document.getElementById('modalPreviewImg');
-        if(previewImg) previewImg.style.opacity = "0.5"; 
-
-        try {
-            // ၁။ Firebase Storage သို့ ပုံကို တိုက်ရိုက် Upload တင်ခြင်း
-            const uploadUrl = `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o?name=${encodeURIComponent(fileName)}`;
-            const storageRes = await fetch(uploadUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': file.type },
-                body: file
-            });
-            
-            if (!storageRes.ok) throw new Error("Firebase Storage Upload Failed");
-            const storageData = await storageRes.json();
-            
-            // ၂။ Firebase Storage ပုံထွက်လာမည့် URL အား တည်ဆောက်ခြင်း
-            const downloadToken = storageData.downloadTokens;
-            const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/${encodeURIComponent(fileName)}?alt=media&token=${downloadToken}`;
-            
-            // ၃။ Popup ထဲက Preview ပုံကို အသစ်ရလာတဲ့ URL ဖြင့် အစားထိုးခြင်း
-            if(previewImg) {
-                previewImg.src = imageUrl;
-                previewImg.style.opacity = "1";
+            const files = document.getElementById('modalFileInput').files;
+            if(files.length > 0 && activePreviewJobId) {
+                const r = new FileReader();
+                r.onload = function(e) {
+                    const base64 = e.target.result;
+                    document.getElementById('modalPreviewImg').src = base64;
+                    updateField(activePreviewJobId, 'image', base64);
+                    writeActivityLog(activePreviewJobId, "", "changed artwork image directly via popup editor");
+                    setTimeout(renderApp, 600);
+                };
+                r.readAsDataURL(files[0]);
             }
-            
-            // ၄။ သင့်မူလ updateField စနစ်အတိုင်း Firebase Realtime Database ထံ URL လှမ်းပို့သိမ်းခြင်း
-            updateField(id, 'image', imageUrl);
-            
-            // Activity Log ရေးမှတ်ခြင်း
-            writeActivityLog(id, "", "changed artwork image directly via popup editor");
-            setTimeout(renderApp, 600);
-            
-        } catch (error) {
-            console.error("Error uploading via modal:", error);
-            alert("Popup မှတစ်ဆင့် ပုံတင်ခြင်း မအောင်မြင်ပါ။");
-            if(previewImg) previewImg.style.opacity = "1";
         }
-    }
-}
 
         function toggleExpand(id) {
             localExpandedState[id] = !localExpandedState[id];
