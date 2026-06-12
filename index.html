@@ -744,7 +744,7 @@ function writeActivityLog(jobId, jobTitle, actionMessage) {
             });
         }
 
-        function handleFileSelection(id, files) {
+function handleFileSelection(id, files) {
     if (!files || files.length === 0) return;
     
     const r = new FileReader();
@@ -753,15 +753,14 @@ function writeActivityLog(jobId, jobTitle, actionMessage) {
         img.src = e.target.result;
 
         img.onload = function() {
-            // --- IMAGE AUTO RESIZE LOGIC (MAX 400px) ---
+            // --- IMAGE AUTO RESIZE LOGIC (ဖိုင်ဆိုက် ၉၀% ခန့်အထိ ချုံ့မည့်အပိုင်း) ---
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
 
-            const MAX_WIDTH = 400; // အကျယ်ကို 400px အထိ ချုံ့မည်
+            const MAX_WIDTH = 200; // အကျယ်ကို 200px အထိ ထားမည်
             let width = img.width;
             let height = img.height;
 
-            // အချိုးအစား မပျက်စေဘဲ ဆိုက်ချုံ့ခြင်း
             if (width > MAX_WIDTH) {
                 height = Math.round((height * MAX_WIDTH) / width);
                 width = MAX_WIDTH;
@@ -770,16 +769,16 @@ function writeActivityLog(jobId, jobTitle, actionMessage) {
             canvas.width = width;
             canvas.height = height;
 
-            // Canvas ပေါ်တွင် ပုံပြန်ဆွဲခြင်း
             ctx.drawImage(img, 0, 0, width, height);
 
-            // Quality ကို 70% (0.7) အထိ လျှော့ချပြီး Base64 String အဖြစ် ပြောင်းလဲခြင်း
-            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            // *** အဓိကအချက်: Quality ကို 0.4 (၄၀%) အထိ လျှော့ချလိုက်ခြင်းဖြင့် 
+            // မူလပုံထက် ၉၀% ခန့်အထိ သိသိသာသာ ဖိုင်ဆိုက် သေးသွားစေမှာ ဖြစ်ပါတယ်
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.4);
 
             // --- သင့်ရဲ့ မူလ Firebase ထဲ သိမ်းဆည်းသည့် အပိုင်း ---
             fetch(`${FIREBASE_URL}/jobs/${id}/image.json`, { 
                 method: 'PUT', 
-                body: JSON.stringify(compressedBase64) // ချုံ့ပြီးသား Base64 ကို သိမ်းမည်
+                body: JSON.stringify(compressedBase64) 
             }).then(() => {
                 const job = jobsData.find(j => j.id == id);
                 if (job) job.image = compressedBase64;
