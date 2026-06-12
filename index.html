@@ -753,7 +753,7 @@ function writeActivityLog(jobId, jobTitle, actionMessage) {
         img.onload = function() {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            const MAX_WIDTH = 150; // အကျယ် 150px ထားမည်
+            const MAX_WIDTH = 120; // အကျယ် 120px ထားမည်
             let width = img.width;
             let height = img.height;
             if (width > MAX_WIDTH) {
@@ -765,7 +765,7 @@ function writeActivityLog(jobId, jobTitle, actionMessage) {
             ctx.drawImage(img, 0, 0, width, height);
             
             // Quality ကို 0.4 (၄၀%) အထိ ချုံ့ပြီး Base64 ပြောင်းခြင်း (ဒေတာ ၉၀% ကျော် သက်သာစေသည်)
-            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.3);
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.2);
 
             fetch(`${FIREBASE_URL}/jobs/${id}/image.json`, { method: 'PUT', body: JSON.stringify(compressedBase64) }).then(() => {
                 const job = jobsData.find(j => j.id == id);
