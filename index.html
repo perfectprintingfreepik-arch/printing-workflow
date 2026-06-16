@@ -63,17 +63,45 @@
         .fb-noti-empty { padding: 20px; text-align: center; color: #65676b; font-size: 13px; }
 
         /* Modern Search Bar */
-        .search-wrapper { display: flex; justify-content: center; margin-bottom: 12px; }
-        .search-bar { width: 100%; max-width: 400px; padding: 11px 18px; border: 1px solid #cbd5e1; border-radius: 25px; font-size: 14px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.2s; background: white; }
+        .search-wrapper { display: flex; justify-content: center; margin-bottom: 12px; position: relative; }
+        .search-bar { width: 100%; max-width: 400px; padding: 11px 44px 11px 18px; border: 1px solid #cbd5e1; border-radius: 25px; font-size: 14px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.2s; background: white; }
         .search-bar:focus { border-color: #2481cc; box-shadow: 0 0 0 3px rgba(36,129,204,0.15); }
+        .search-clear-btn { position: absolute; right: calc(50% - 195px); top: 50%; transform: translateY(-50%); background: #94a3b8; border: none; border-radius: 50%; width: 20px; height: 20px; color: white; font-size: 11px; font-weight: bold; cursor: pointer; display: none; align-items: center; justify-content: center; transition: background 0.2s; z-index: 1; }
+        .search-clear-btn:hover { background: #64748b; }
+        .search-history-btn { position: absolute; right: calc(50% - 220px); top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; font-size: 16px; cursor: pointer; padding: 4px; display: flex; align-items: center; transition: color 0.2s; z-index: 1; }
+        .search-history-btn:hover { color: #475569; }
+        @media (max-width: 440px) { .search-clear-btn { right: 8px; } .search-history-btn { right: 30px; } }
+
+        /* Job Progress Bar */
+        .job-progress-bar-wrap { height: 6px; border-radius: 0 0 16px 16px; overflow: hidden; margin: -16px -16px 0 -16px; margin-top: 12px; }
+        .job-progress-bar-fill { height: 100%; border-radius: 0 0 16px 16px; transition: width 0.5s ease; background: linear-gradient(90deg, #ef4444 0%, #f97316 35%, #a3e635 65%, #22c55e 100%); }
+        .job-card.finished-card .job-progress-bar-wrap { display: none; }
 
         /* Filter Tabs */
-        .filter-tabs { display: flex; justify-content: center; gap: 6px; margin-bottom: 5px; width: 100%; }
+        .filter-tabs-wrapper { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; width: 100%; position: relative; }
+        .filter-tabs { display: flex; justify-content: center; gap: 6px; flex: 1; }
         .tab-btn { flex: 1; padding: 9px 0; border: 1px solid #cbd5e1; background: white; color: #64748b; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 12px; text-align: center; transition: all 0.2s; }
         .tab-btn:hover { background: #f8fafc; color: #334155; }
         .tab-btn.active { background: #2481cc; color: white; border-color: #2481cc; box-shadow: 0 2px 4px rgba(36,129,204,0.2); }
         .tab-btn.alert-tab { color: #ef4444; border-color: #fee2e2; background: #fff5f5; }
         .tab-btn.alert-tab.active { background: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 2px 4px rgba(239,68,68,0.2); }
+
+        /* Process Filter Dropdown */
+        .process-filter-btn { width: 34px; height: 34px; border-radius: 10px; border: 1px solid #cbd5e1; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; transition: all 0.2s; position: relative; }
+        .process-filter-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
+        .process-filter-btn.has-active { background: #2481cc; border-color: #2481cc; color: white; box-shadow: 0 2px 6px rgba(36,129,204,0.35); }
+        .process-dropdown-overlay { display: none; position: fixed; inset: 0; z-index: 998; }
+        .process-dropdown { display: none; position: absolute; top: calc(100% + 8px); right: 0; width: 300px; background: white; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; z-index: 999; overflow: hidden; animation: slideDown 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+        @keyframes slideDown { from { opacity:0; transform: translateY(-10px) scale(0.97); } to { opacity:1; transform: translateY(0) scale(1); } }
+        .process-dropdown-header { padding: 12px 16px 8px; font-size: 12px; font-weight: 700; color: #94a3b8; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        .process-dropdown-clear { font-size: 11px; font-weight: 600; color: #ef4444; cursor: pointer; text-transform: none; letter-spacing: 0; }
+        .process-dropdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; }
+        .process-chip { padding: 9px 10px; border-radius: 10px; border: 1.5px solid #e2e8f0; background: #f8fafc; color: #475569; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.18s; user-select: none; }
+        .process-chip:hover { border-color: #2481cc; color: #2481cc; background: #eff6ff; }
+        .process-chip.chip-active { background: #2481cc; color: white; border-color: #2481cc; box-shadow: 0 2px 6px rgba(36,129,204,0.3); }
+        .process-chip.chip-red { background: #fff5f5; border-color: #fecaca; color: #ef4444; }
+        .process-chip.chip-red.chip-active { background: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 2px 6px rgba(239,68,68,0.3); }
+        .process-active-badge { position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; font-size: 10px; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: none; align-items: center; justify-content: center; border: 2px solid white; }
 
         /* Logs Panel UI */
         .logs-panel { display: none; background: white; border-radius: 16px; padding: 15px; margin-bottom: 15px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); max-height: 320px; overflow-y: auto; border: 1px solid #e2e8f0; animation: fadeIn 0.2s ease-out; }
@@ -275,23 +303,56 @@
         </div>
         
         <div class="logs-panel" id="logsPanelElement">
-            <div style="font-weight:bold; font-size:14px; margin-bottom:8px; display:flex; justify-content:space-between; color:#334155;">
+            <div style="font-weight:bold; font-size:14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; color:#334155;">
                 <span>📋 ဆိုင်တွင်း လုပ်ဆောင်ချက်မှတ်တမ်းများ</span>
-                <span style="cursor:pointer; color:#94a3b8; font-weight:bold;" onclick="toggleLogsPanel()">✕</span>
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <button onclick="downloadLogs()" style="background:#0284c7; color:white; border:none; padding:4px 9px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer; transition:opacity 0.2s;" onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1">⬇ Download</button>
+                    <button onclick="clearLogsFromServer()" style="background:#ef4444; color:white; border:none; padding:4px 9px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer; transition:opacity 0.2s;" onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1">🗑 Clear Log</button>
+                    <span style="cursor:pointer; color:#94a3b8; font-weight:bold; padding:2px 4px;" onclick="toggleLogsPanel()">✕</span>
+                </div>
             </div>
             <input type="text" class="log-search-bar" id="logSearchBar" placeholder="🔍 ဝန်ထမ်းအမည်၊ ဖိုင်အမည်၊ စာသားဖြင့်ရှာရန်..." oninput="filterActivityLogs()">
             <div id="logsContainer" class="log-items-container"></div>
         </div>
 
         <div class="search-wrapper">
-            <input type="text" class="search-bar" id="searchBar" placeholder="🔍 စာသား၊ နံပါတ် သို့မဟုတ် ရက်စွဲဖြင့်ရှာဖွေရန်..." oninput="triggerSearch()">
+            <input type="text" class="search-bar" id="searchBar" placeholder="🔍 စာသား၊ နံပါတ် သို့မဟုတ် ရက်စွဲဖြင့်ရှာဖွေရန်..." oninput="onSearchInput()">
+            <button class="search-clear-btn" id="searchClearBtn" onclick="clearSearch()" title="Clear Search">✕</button>
+            <button class="search-history-btn" id="searchHistoryBtn" onclick="clearSearchHistory()" title="Clear Search History">🕐</button>
         </div>
         
-        <div class="filter-tabs">
-            <button class="tab-btn active" id="tab-all" onclick="switchFilterTab('all')">All</button>
-            <button class="tab-btn" id="tab-unfinished" onclick="switchFilterTab('unfinished')">Unfinished</button>
-            <button class="tab-btn" id="tab-finished" onclick="switchFilterTab('finished')">Finished</button>
-            <button class="tab-btn alert-tab" id="tab-alerts" onclick="switchFilterTab('alerts')">⚠️ Alert</button>
+        <div class="filter-tabs-wrapper">
+            <div class="filter-tabs">
+                <button class="tab-btn active" id="tab-all" onclick="switchFilterTab('all')">All</button>
+                <button class="tab-btn" id="tab-unfinished" onclick="switchFilterTab('unfinished')">Unfinished</button>
+                <button class="tab-btn" id="tab-finished" onclick="switchFilterTab('finished')">Finished</button>
+                <button class="tab-btn alert-tab" id="tab-alerts" onclick="switchFilterTab('alerts')">⚠️ Alert</button>
+            </div>
+            <div style="position:relative; flex-shrink:0;">
+                <button class="process-filter-btn" id="processFilterBtn" onclick="toggleProcessDropdown()" title="Process Filter">
+                    ⚙️
+                    <span class="process-active-badge" id="processActiveBadge"></span>
+                </button>
+                <div class="process-dropdown" id="processDropdown">
+                    <div class="process-dropdown-header">
+                        <span>Process Filter</span>
+                        <span class="process-dropdown-clear" onclick="clearProcessFilter()">Clear All</span>
+                    </div>
+                    <div class="process-dropdown-grid">
+                        <div class="process-chip" data-key="paper" onclick="toggleProcessChip(this)">Paper</div>
+                        <div class="process-chip" data-key="ctp" onclick="toggleProcessChip(this)">CTP</div>
+                        <div class="process-chip" data-key="press" onclick="toggleProcessChip(this)">Press</div>
+                        <div class="process-chip" data-key="lamination" onclick="toggleProcessChip(this)">Lamination</div>
+                        <div class="process-chip" data-key="dieframe" onclick="toggleProcessChip(this)">Die Frame Mould</div>
+                        <div class="process-chip" data-key="diecut" onclick="toggleProcessChip(this)">Die Cut</div>
+                        <div class="process-chip" data-key="cutting" onclick="toggleProcessChip(this)">Cutting</div>
+                        <div class="process-chip" data-key="binding" onclick="toggleProcessChip(this)">Binding</div>
+                        <div class="process-chip" data-key="zinc" onclick="toggleProcessChip(this)">Zinc</div>
+                        <div class="process-chip" data-key="goldfoil" onclick="toggleProcessChip(this)">Gold Foil Press</div>
+                    </div>
+                </div>
+                <div class="process-dropdown-overlay" id="processDropdownOverlay" onclick="closeProcessDropdown()"></div>
+            </div>
         </div>
     </div>
 
@@ -306,10 +367,37 @@
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; gap:15px; margin-bottom: 18px; flex-wrap: wrap;">
-                <div class="dash-filter-tabs">
-                    <button class="dash-tab-btn active" id="dash-tab-all" onclick="switchDashboardFilter('all')">All</button>
-                    <button class="dash-tab-btn" id="dash-tab-unfinished" onclick="switchDashboardFilter('unfinished')">Unfinished</button>
-                    <button class="dash-tab-btn" id="dash-tab-finished" onclick="switchDashboardFilter('finished')">Finished</button>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div class="dash-filter-tabs">
+                        <button class="dash-tab-btn active" id="dash-tab-all" onclick="switchDashboardFilter('all')">All</button>
+                        <button class="dash-tab-btn" id="dash-tab-unfinished" onclick="switchDashboardFilter('unfinished')">Unfinished</button>
+                        <button class="dash-tab-btn" id="dash-tab-finished" onclick="switchDashboardFilter('finished')">Finished</button>
+                    </div>
+                    <div style="position:relative;">
+                        <button class="process-filter-btn" id="dashProcessFilterBtn" onclick="toggleDashProcessDropdown()" title="Process Filter" style="height:34px; width:34px; border-radius:10px;">
+                            ⚙️
+                            <span class="process-active-badge" id="dashProcessActiveBadge"></span>
+                        </button>
+                        <div class="process-dropdown" id="dashProcessDropdown" style="left:0; right:auto;">
+                            <div class="process-dropdown-header">
+                                <span>Process Filter</span>
+                                <span class="process-dropdown-clear" onclick="clearDashProcessFilter()">Clear All</span>
+                            </div>
+                            <div class="process-dropdown-grid">
+                                <div class="process-chip" data-key="paper" onclick="toggleDashProcessChip(this)">Paper</div>
+                                <div class="process-chip" data-key="ctp" onclick="toggleDashProcessChip(this)">CTP</div>
+                                <div class="process-chip" data-key="press" onclick="toggleDashProcessChip(this)">Press</div>
+                                <div class="process-chip" data-key="lamination" onclick="toggleDashProcessChip(this)">Lamination</div>
+                                <div class="process-chip" data-key="dieframe" onclick="toggleDashProcessChip(this)">Die Frame Mould</div>
+                                <div class="process-chip" data-key="diecut" onclick="toggleDashProcessChip(this)">Die Cut</div>
+                                <div class="process-chip" data-key="cutting" onclick="toggleDashProcessChip(this)">Cutting</div>
+                                <div class="process-chip" data-key="binding" onclick="toggleDashProcessChip(this)">Binding</div>
+                                <div class="process-chip" data-key="zinc" onclick="toggleDashProcessChip(this)">Zinc</div>
+                                <div class="process-chip" data-key="goldfoil" onclick="toggleDashProcessChip(this)">Gold Foil Press</div>
+                            </div>
+                        </div>
+                        <div class="process-dropdown-overlay" id="dashProcessDropdownOverlay" onclick="closeDashProcessDropdown()"></div>
+                    </div>
                 </div>
                 <input type="text" class="dash-search-bar" id="dashboardSearchBar" placeholder="🔍 ID သို့မဟုတ် ဖိုင်အမည်ဖြင့် ရှာရန်..." oninput="renderDashboardTable()">
             </div>
@@ -617,6 +705,16 @@ function writeActivityLog(jobId, jobTitle, actionMessage) {
                 
                 const jobTitle = (job.title || '').toLowerCase();
                 if (searchInput && !jobTitle.includes(searchInput) && !job.id.toString().includes(searchInput)) return;
+
+                // Dash process filter
+                if(dashActiveProcessFilters.size > 0) {
+                    if(!job.workflow) return;
+                    let match = false;
+                    for(const key of dashActiveProcessFilters) {
+                        if(job.workflow[key] && job.workflow[key].bulb === 'red') { match = true; break; }
+                    }
+                    if(!match) return;
+                }
                 
                 const getStepCell = (stepKey) => {
                     const step = (job.workflow && job.workflow[stepKey]) ? job.workflow[stepKey] : {};
@@ -647,7 +745,139 @@ function writeActivityLog(jobId, jobTitle, actionMessage) {
         }
 
         // --- Core Job Functionality ---
+        // --- Search with clear button ---
+        function onSearchInput() {
+            const val = document.getElementById('searchBar').value;
+            const clearBtn = document.getElementById('searchClearBtn');
+            clearBtn.style.display = val.length > 0 ? 'flex' : 'none';
+            currentPage = 1; renderApp();
+        }
+        function clearSearch() {
+            document.getElementById('searchBar').value = '';
+            document.getElementById('searchClearBtn').style.display = 'none';
+            currentPage = 1; renderApp();
+        }
+        function clearSearchHistory() {
+            if(confirm("Search History ကို ဖျက်မည်လား?")) {
+                localStorage.removeItem('searchHistory');
+                alert("Search History ကို ရှင်းပြီးပါပြီ။");
+            }
+        }
         function triggerSearch() { currentPage = 1; renderApp(); }
+
+        // --- Process Filter (Main) ---
+        let activeProcessFilters = new Set();
+        function toggleProcessDropdown() {
+            const dd = document.getElementById('processDropdown');
+            const ov = document.getElementById('processDropdownOverlay');
+            const isOpen = dd.style.display === 'block';
+            dd.style.display = isOpen ? 'none' : 'block';
+            ov.style.display = isOpen ? 'none' : 'block';
+        }
+        function closeProcessDropdown() {
+            document.getElementById('processDropdown').style.display = 'none';
+            document.getElementById('processDropdownOverlay').style.display = 'none';
+        }
+        function toggleProcessChip(el) {
+            const key = el.dataset.key;
+            if(activeProcessFilters.has(key)) { activeProcessFilters.delete(key); el.classList.remove('chip-active'); }
+            else { activeProcessFilters.add(key); el.classList.add('chip-active'); }
+            updateProcessFilterBadge();
+            currentPage = 1; renderApp();
+        }
+        function clearProcessFilter() {
+            activeProcessFilters.clear();
+            document.querySelectorAll('#processDropdown .process-chip').forEach(c => c.classList.remove('chip-active'));
+            updateProcessFilterBadge();
+            currentPage = 1; renderApp();
+        }
+        function updateProcessFilterBadge() {
+            const badge = document.getElementById('processActiveBadge');
+            const btn = document.getElementById('processFilterBtn');
+            if(activeProcessFilters.size > 0) {
+                badge.textContent = activeProcessFilters.size;
+                badge.style.display = 'flex';
+                btn.classList.add('has-active');
+            } else {
+                badge.style.display = 'none';
+                btn.classList.remove('has-active');
+            }
+        }
+
+        // --- Process Filter (Dashboard) ---
+        let dashActiveProcessFilters = new Set();
+        function toggleDashProcessDropdown() {
+            const dd = document.getElementById('dashProcessDropdown');
+            const ov = document.getElementById('dashProcessDropdownOverlay');
+            const isOpen = dd.style.display === 'block';
+            dd.style.display = isOpen ? 'none' : 'block';
+            ov.style.display = isOpen ? 'none' : 'block';
+        }
+        function closeDashProcessDropdown() {
+            document.getElementById('dashProcessDropdown').style.display = 'none';
+            document.getElementById('dashProcessDropdownOverlay').style.display = 'none';
+        }
+        function toggleDashProcessChip(el) {
+            const key = el.dataset.key;
+            if(dashActiveProcessFilters.has(key)) { dashActiveProcessFilters.delete(key); el.classList.remove('chip-active'); }
+            else { dashActiveProcessFilters.add(key); el.classList.add('chip-active'); }
+            updateDashProcessFilterBadge();
+            renderDashboardTable();
+        }
+        function clearDashProcessFilter() {
+            dashActiveProcessFilters.clear();
+            document.querySelectorAll('#dashProcessDropdown .process-chip').forEach(c => c.classList.remove('chip-active'));
+            updateDashProcessFilterBadge();
+            renderDashboardTable();
+        }
+        function updateDashProcessFilterBadge() {
+            const badge = document.getElementById('dashProcessActiveBadge');
+            const btn = document.getElementById('dashProcessFilterBtn');
+            if(dashActiveProcessFilters.size > 0) {
+                badge.textContent = dashActiveProcessFilters.size;
+                badge.style.display = 'flex';
+                btn.classList.add('has-active');
+            } else {
+                badge.style.display = 'none';
+                btn.classList.remove('has-active');
+            }
+        }
+
+        // --- Job Progress Bar Calculation ---
+        function calcJobProgress(job) {
+            if(!job || !job.workflow) return 0;
+            const steps = WORKFLOW_STEPS.filter(s => s.key !== 'quantity');
+            const filledSteps = steps.filter(s => {
+                const step = job.workflow[s.key];
+                return step && (step.text || step.bulb === 'green' || step.bulb === 'red');
+            });
+            if(filledSteps.length === 0) return 0;
+            const greenSteps = filledSteps.filter(s => job.workflow[s.key] && job.workflow[s.key].bulb === 'green');
+            return Math.round((greenSteps.length / filledSteps.length) * 100);
+        }
+
+        // --- Download & Clear Logs (Admin only) ---
+        function downloadLogs() {
+            if(allLogsCached.length === 0) { alert("Download ရန် Log မှတ်တမ်း မရှိသေးပါ။"); return; }
+            const content = allLogsCached.map(l => l.text || '').join('\n');
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const d = new Date();
+            a.href = url;
+            a.download = `activity_log_${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        function clearLogsFromServer() {
+            if(!confirm("Server မှ Log မှတ်တမ်းများ အားလုံး ဖျက်မည်လား?\n(Download ပြုလုပ်ပြီးမှ Clear လုပ်ပါ)")) return;
+            fetch(`${FIREBASE_URL}/logs.json`, { method: 'DELETE' }).then(() => {
+                allLogsCached = [];
+                displayLogs([]);
+                alert("Log မှတ်တမ်းများ ရှင်းပြီးပါပြီ။");
+            });
+        }
+
         function switchFilterTab(tabType) {
             currentFilter = tabType;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -828,6 +1058,17 @@ function writeActivityLog(jobId, jobTitle, actionMessage) {
             else if (currentFilter === 'unfinished') filtered = filtered.filter(j => j.isDone === false);
             else if (currentFilter === 'alerts') filtered = filtered.filter(j => j.isAlertActive === true);
 
+            // Process filter: show jobs where selected process has red bulb
+            if(activeProcessFilters.size > 0) {
+                filtered = filtered.filter(j => {
+                    if(!j.workflow) return false;
+                    for(const key of activeProcessFilters) {
+                        if(j.workflow[key] && j.workflow[key].bulb === 'red') return true;
+                    }
+                    return false;
+                });
+            }
+
             document.getElementById('jobCount').innerText = `${filtered.length} jobs`;
 
             const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
@@ -942,6 +1183,8 @@ function writeActivityLog(jobId, jobTitle, actionMessage) {
                         <div class="workflow-details ${isExpanded?'active':''}" id="workflow-${job.id}">
                             ${workflowRowsHtml}
                         </div>
+
+                        ${!job.isDone ? `<div class="job-progress-bar-wrap"><div class="job-progress-bar-fill" style="width:${calcJobProgress(job)}%"></div></div>` : ''}
                     </div>
                 `;
                 container.insertAdjacentHTML('beforeend', cardHtml);
