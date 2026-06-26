@@ -1194,18 +1194,40 @@ function writeActivityLog(jobId, jobTitle, actionMessage) {
         }
 
         function renderPaginationControls(totalPages) {
-            const container = document.getElementById('paginationContainer');
-            if(!container) return; container.innerHTML = ""; if (totalPages <= 1) return;
+    const container = document.getElementById('paginationContainer');
+    if (!container) return; 
+    container.innerHTML = ""; 
+    if (totalPages <= 1) return;
 
-            let html = `<button class="page-btn" ${currentPage===1?'disabled':''} onclick="changePage(${currentPage-1})">◀ Prev</button>`;
-            for(let i=1; i<=totalPages; i++) {
-                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
-            }
-            html += `<button class="page-btn" ${currentPage===totalPages?'disabled':''} onclick="changePage(${currentPage+1})">Next ▶</button>`;
-            container.innerHTML = html;
-        }
+    let html = `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">◀ Prev</button>`;
 
-        function changePage(pageNum) { currentPage = pageNum; renderApp(); window.scrollTo(0,0); }
+    // ၁၀ ခုပဲ ပြချင်တဲ့အတွက် Limit သတ်မှတ်ပါမယ်
+    let maxVisiblePages = 10;
+    
+    // Start Page နဲ့ End Page ကို တွက်ချက်ခြင်း
+    let startPage = Math.max(currentPage - Math.floor(maxVisiblePages / 2), 1);
+    let endPage = startPage + maxVisiblePages - 1;
+
+    // အကယ်၍ End Page က Total Pages ထက် ကျော်သွားခဲ့ရင် ပြန်ညှိပါမယ်
+    if (endPage > totalPages) {
+        endPage = totalPages;
+        startPage = Math.max(endPage - maxVisiblePages + 1, 1);
+    }
+
+    // Loop ကို startPage ကနေ endPage အထိပဲ ပတ်ပါတော့မယ်
+    for (let i = startPage; i <= endPage; i++) {
+        html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+    }
+
+    html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">Next ▶</button>`;
+    container.innerHTML = html;
+}
+
+function changePage(pageNum) { 
+    currentPage = pageNum; 
+    renderApp(); 
+    window.scrollTo(0, 0); 
+}
     </script>
 </body>
 </html>
