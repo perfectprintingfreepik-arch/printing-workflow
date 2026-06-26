@@ -1202,7 +1202,7 @@ function writeActivityLog(jobId, jobTitle, actionMessage) {
     let html = `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">◀ Prev</button>`;
 
     // ၁၀ ခုပဲ ပြချင်တဲ့အတွက် Limit သတ်မှတ်ပါမယ်
-    let maxVisiblePages = 10;
+    let maxVisiblePages = 8;
     
     // Start Page နဲ့ End Page ကို တွက်ချက်ခြင်း
     let startPage = Math.max(currentPage - Math.floor(maxVisiblePages / 2), 1);
